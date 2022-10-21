@@ -18,7 +18,7 @@ use Symfony\Component\Security\Http\Authenticator\Passport\SelfValidatingPasspor
 class ApiTokenAuthenticator extends AbstractAuthenticator
 {
 
-    private $userRepository;
+    private  $userRepository;
 
     public function __construct(UserRepository $userRepository)
     {
@@ -34,7 +34,7 @@ class ApiTokenAuthenticator extends AbstractAuthenticator
     {
         $apiToken = $request->headers->get('x-api-token');
 
-        if(null == $apiToken) {
+        if(null === $apiToken) {
             throw new CustomUserMessageAuthenticationException('No api token provided');
         }
 
