@@ -35,6 +35,12 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\OneToMany(mappedBy: 'tokenOwner', targetEntity: ApiToken::class, orphanRemoval: true)]
     private Collection $apiTokens;
 
+    #[ORM\Column(length: 255)]
+    private ?string $username = null;
+
+    #[ORM\Column(length: 255)]
+    private ?string $fullname = null;
+
     public function __construct()
     {
         $this->apiTokens = new ArrayCollection();
@@ -136,6 +142,30 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
                 $apiToken->setTokenOwner(null);
             }
         }
+
+        return $this;
+    }
+
+    public function getUsername(): ?string
+    {
+        return $this->username;
+    }
+
+    public function setUsername(string $username): self
+    {
+        $this->username = $username;
+
+        return $this;
+    }
+
+    public function getFullname(): ?string
+    {
+        return $this->fullname;
+    }
+
+    public function setFullname(string $fullname): self
+    {
+        $this->fullname = $fullname;
 
         return $this;
     }
