@@ -2,15 +2,24 @@
 
 namespace App\Controller;
 
+use http\Client\Request;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 
 class CreateUserController extends AbstractController
 {
     #[Route('/users/register', name: 'app_create_user')]
-    public function index(Request $request, UserPasswordHasherInterface $passwordHasher): Response
+    public function index(Request $request, UserPasswordHasherInterface $passwordHasher): JsonResponse
     {
+        $response = new JsonResponse();
+        $response->headers->set('Content-Type', 'application/json');
+        $returnMessage = json_encode(["message"=>"Hola"]);
+        $response->setContent($returnMessage);
+
+        return $response;
+
         // username will be email
         $email = $request->get("username");
         $user = $this->userRepository->findOneBy([
