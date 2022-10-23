@@ -9,10 +9,17 @@ use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
+use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: UserRepository::class)]
 #[ORM\Table(name: '`user`')]
-#[ApiResource]
+#[ApiResource(operations: [
+    new Get(),
+    new GetCollection()
+])]
+    /**
+     * @var string The hashed password
+     */
 class User implements UserInterface, PasswordAuthenticatedUserInterface
 {
     #[ORM\Id]
@@ -20,26 +27,33 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column]
     private ?int $id = null;
 
-    #[ORM\Column(length: 180, unique: true)]
+    #[ORM\Column(length: 180, unique: true, nullable: false)]
+    #[Assert\NotBlank]
+    #[Assert\Email]
+    #[ApiProperty(
+        openapiContext: [
+            'type' => 'string',
+            'exmample' => 'electri@gmail.com'
+        ]
+    )]
     private ?string $email = null;
 
-    #[ORM\Column]
-    private array $roles = [];
-
-    /**
-     * @var string The hashed password
-     */
-    #[ORM\Column]
+    #[ORM\Column(nullable: false)]
+    #[Assert\NotBlank]
     private ?string $password = null;
-
-    #[ORM\OneToMany(mappedBy: 'tokenOwner', targetEntity: ApiToken::class, orphanRemoval: true)]
-    private Collection $apiTokens;
 
     #[ORM\Column(length: 255)]
     private ?string $username = null;
 
     #[ORM\Column(length: 255)]
     private ?string $fullname = null;
+
+    #[ORM\OneToMany(mappedBy: 'tokenOwner', targetEntity: ApiToken::class, orphanRemoval: true)]
+    private Collection $apiTokens;
+
+    #[ORM\Column]
+    #[Assert\NotNull]
+    private array $roles = ["ROLE_USER"];
 
     public function __construct()
     {
