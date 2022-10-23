@@ -13,10 +13,6 @@ use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: UserRepository::class)]
 #[ORM\Table(name: '`user`')]
-#[ApiResource(operations: [
-    new Get(),
-    new GetCollection()
-])]
     /**
      * @var string The hashed password
      */
@@ -36,6 +32,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
             'exmample' => 'electri@gmail.com'
         ]
     )]
+    #[Groups(['user'])]
     private ?string $email = null;
 
     #[ORM\Column(nullable: false)]
@@ -43,12 +40,15 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     private ?string $password = null;
 
     #[ORM\Column(length: 255)]
+    #[Groups(['user'])]
     private ?string $username = null;
 
     #[ORM\Column(length: 255)]
+    #[Groups(['user'])]
     private ?string $fullname = null;
 
     #[ORM\OneToMany(mappedBy: 'tokenOwner', targetEntity: ApiToken::class, orphanRemoval: true)]
+    #[Groups(['user'])]
     private Collection $apiTokens;
 
     #[ORM\Column]

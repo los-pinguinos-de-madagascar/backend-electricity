@@ -8,6 +8,7 @@ use Doctrine\ORM\Mapping as ORM;
 
 #[ApiResource]
 #[ORM\Entity(repositoryClass: ApiTokenRepository::class)]
+
 class ApiToken
 {
     #[ORM\Id]
@@ -18,9 +19,15 @@ class ApiToken
     #[ORM\Column(length: 255)]
     private ?string $token = null;
 
-    #[ORM\ManyToOne(inversedBy: 'apiTokens')]
+    #[ORM\ManyToOne(inversedBy: 'apiTokens', cascade: ["persist"])]
     #[ORM\JoinColumn(nullable: false)]
     private ?User $tokenOwner = null;
+
+    public function __construct(String $token, User $tokenOwner)
+    {
+        $this->setToken($token);
+        $this->setTokenOwner($tokenOwner);
+    }
 
     public function getId(): ?int
     {
