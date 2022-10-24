@@ -24,6 +24,11 @@ class ApiTokenAuthenticator extends AbstractAuthenticator
      */
     public function supports(Request $request): ?bool
     {
+        dd($request->attributes);
+        if($request){
+
+        }
+        return true;
         return $request->headers->has('X-AUTH-TOKEN');
     }
 

@@ -10,7 +10,7 @@ use Doctrine\Migrations\AbstractMigration;
 /**
  * Auto-generated Migration: Please modify to your needs!
  */
-final class Version20221022183930 extends AbstractMigration
+final class Version20221024130014 extends AbstractMigration
 {
     public function getDescription(): string
     {
@@ -20,14 +20,13 @@ final class Version20221022183930 extends AbstractMigration
     public function up(Schema $schema): void
     {
         // this up() migration is auto-generated, please modify it to your needs
-        $this->addSql('DROP SEQUENCE greeting_id_seq CASCADE');
         $this->addSql('CREATE SEQUENCE api_token_id_seq INCREMENT BY 1 MINVALUE 1 START 1');
+        $this->addSql('CREATE SEQUENCE "user_id_seq" INCREMENT BY 1 MINVALUE 1 START 1');
         $this->addSql('CREATE TABLE api_token (id INT NOT NULL, token_owner_id INT NOT NULL, token VARCHAR(255) NOT NULL, PRIMARY KEY(id))');
         $this->addSql('CREATE INDEX IDX_7BA2F5EBA63BC7A ON api_token (token_owner_id)');
+        $this->addSql('CREATE TABLE "user" (id INT NOT NULL, email VARCHAR(180) NOT NULL, password VARCHAR(255) NOT NULL, username VARCHAR(255) NOT NULL, fullname VARCHAR(255) NOT NULL, roles JSON NOT NULL, PRIMARY KEY(id))');
+        $this->addSql('CREATE UNIQUE INDEX UNIQ_8D93D649E7927C74 ON "user" (email)');
         $this->addSql('ALTER TABLE api_token ADD CONSTRAINT FK_7BA2F5EBA63BC7A FOREIGN KEY (token_owner_id) REFERENCES "user" (id) NOT DEFERRABLE INITIALLY IMMEDIATE');
-        $this->addSql('DROP TABLE greeting');
-        $this->addSql('ALTER TABLE "user" ADD username VARCHAR(255) NOT NULL');
-        $this->addSql('ALTER TABLE "user" ADD fullname VARCHAR(255) NOT NULL');
     }
 
     public function down(Schema $schema): void
@@ -35,11 +34,9 @@ final class Version20221022183930 extends AbstractMigration
         // this down() migration is auto-generated, please modify it to your needs
         $this->addSql('CREATE SCHEMA public');
         $this->addSql('DROP SEQUENCE api_token_id_seq CASCADE');
-        $this->addSql('CREATE SEQUENCE greeting_id_seq INCREMENT BY 1 MINVALUE 1 START 1');
-        $this->addSql('CREATE TABLE greeting (id INT NOT NULL, name VARCHAR(255) NOT NULL, PRIMARY KEY(id))');
+        $this->addSql('DROP SEQUENCE "user_id_seq" CASCADE');
         $this->addSql('ALTER TABLE api_token DROP CONSTRAINT FK_7BA2F5EBA63BC7A');
         $this->addSql('DROP TABLE api_token');
-        $this->addSql('ALTER TABLE "user" DROP username');
-        $this->addSql('ALTER TABLE "user" DROP fullname');
+        $this->addSql('DROP TABLE "user"');
     }
 }

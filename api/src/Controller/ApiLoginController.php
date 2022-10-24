@@ -23,27 +23,34 @@ class ApiLoginController extends AbstractController
         $user = new User();
         $entityManager = $doctrine->getManager();
 
-
         //access token should be generated here
         $access_token = "12345";
 
         $user = $this->getUser();
-        //calling constructor for apitoken with named paremeters
-        $apiToken = new ApiToken(token: $access_token, tokenOwner: $user);
-        //persist
-        $entityManager->persist($apiToken);
+        try {
+            //calling constructor for apitoken with named paremeters
+            $apiToken = new ApiToken(token: $access_token, tokenOwner: $user);
+            //persist
+            // $entityManager->persist($apiToken);
 
-        $user->addApiToken($apiToken);
-        //persist changes to db
-        $entityManager->persist($user);
-        //EXECUTE THE ACTUAL QUERIES
-        $entityManager->flush();
+            $user->addApiToken($apiToken);
+            //persist changes to db
+            $entityManager->persist($user);
+            //EXECUTE THE ACTUAL QUERIES
+            $entityManager->flush();
+        }
+        catch (\Exception $e){
+            $user->removeApiToken($apiToken);
+        }
+        $serialized_tokens = null;
+        $tokens = $user->getApiTokens();
+        foreach($tokens as $token){
+            $serialized_tokens[] = $token->getToken();
+        }
 
-        $user->removeApiToken($apiToken);
         return $this->json([
             'message' => 'Successfull login',
-            'token' => $apiToken->getToken(),
-            'user' => $user
+            'user' => ['email' => $user->getEmail(), 'tokens' => $serialized_tokens]
         ]);
     }
 }
