@@ -6,8 +6,7 @@ use ApiPlatform\Metadata\ApiResource;
 use App\Repository\StationRepository;
 use Doctrine\ORM\Mapping as ORM;
 
-#[ORM\Entity(repositoryClass: StationRepository::class)]
-#[ApiResource]
+#[ORM\MappedSuperclass(repositoryClass: StationRepository::class)]
 class Station
 {
     #[ORM\Id]
@@ -25,7 +24,7 @@ class Station
     private ?bool $status = null;
 
     #[ORM\Column(length: 255)]
-    private ?string $adress = null;
+    private ?string $adress = " ";
 
     public function getId(): ?int
     {
@@ -40,7 +39,6 @@ class Station
     public function setLatitude(float $latitude): self
     {
         $this->latitude = $latitude;
-
         return $this;
     }
 
@@ -68,15 +66,16 @@ class Station
         return $this;
     }
 
-    public function getAdress(): ?string
+    public function getAddress(): ?string
     {
         return $this->adress;
     }
 
-    public function setAdress(string $adress): self
+    public function setAddress(string $adress): self
     {
         $this->adress = $adress;
 
         return $this;
     }
+
 }
