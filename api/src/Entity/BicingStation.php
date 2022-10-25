@@ -23,6 +23,19 @@ class BicingStation extends Station
     #[ORM\Column]
     private ?int $availableSlots = null;
 
+    public function __construct(float $latitude, float $longitude, bool $status,
+                                string $adress, int $capacity, int $mechanical, int $electrical, int $availableSlots)
+    {
+        $this->setLatitude($latitude);
+        $this->setLongitude($longitude);
+        $this->setStatus($status);
+        $this->setAddress($adress);
+        $this->setCapacity($capacity);
+        $this->setMechanical($mechanical);
+        $this->setElectrical($electrical);
+        $this->setAvailableSlots($availableSlots);
+    }
+
     public function getCapacity(): ?int
     {
         return $this->capacity;
