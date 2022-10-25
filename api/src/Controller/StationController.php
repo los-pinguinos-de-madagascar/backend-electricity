@@ -16,34 +16,29 @@ class StationController extends AbstractController
         $entityManager = $doctrine->getManager();
 
         //Get Json of bicing permanent
-        $url1 = 'https://api.bsmsa.eu/ext/api/bsm/gbfs/v2/en/station_information';
-        $get_json1 = file_get_contents($url1);
-        $json1 = json_decode($get_json1);
-        $json1 = (array)$json1->data;
-
-        //dd($json['stations'][0]->lat);
+        $url_information = 'https://api.bsmsa.eu/ext/api/bsm/gbfs/v2/en/station_information';
+        $get_json_information = file_get_contents($url_information);
+        $json_information = json_decode($get_json_information);
+        $json_information = (array)$json_information->data;
 
         //Get Json of bicing temporary
-        $url2 = 'https://api.bsmsa.eu/ext/api/bsm/gbfs/v2/en/station_status';
-        $get_json2 = file_get_contents($url2);
-        $json2 = json_decode($get_json2);
-        $json2 = (array)$json2->data;
-        //dd($json2);
+        $url_status = 'https://api.bsmsa.eu/ext/api/bsm/gbfs/v2/en/station_status';
+        $get_json_status = file_get_contents($url_status);
+        $json_status = json_decode($get_json_status);
+        $json_status = (array)$json_status->data;
 
         $iterator = 0;
-        foreach($json1['stations'] as $item) { //foreach element in $json
+        foreach($json_information['stations'] as $item) { //foreach element in $json
             $id_relation = $item->station_id;
             $latitude = $item->lat;
             $longitude = $item->lon;
             $adress = $item->address;
             $capacity = $item->capacity;
-            $mechanical = $json2['stations'][$iterator]->num_bikes_available_types->mechanical;
-            $electrical = $json2['stations'][$iterator]->num_bikes_available_types->ebike;
-            $availableSlots = $json2['stations'][$iterator]->num_docks_available;
-
+            $mechanical = $json_status['stations'][$iterator]->num_bikes_available_types->mechanical;
+            $electrical = $json_status['stations'][$iterator]->num_bikes_available_types->ebike;
+            $availableSlots = $json_status['stations'][$iterator]->num_docks_available;
 
             $station = new BicingStation($latitude,$longitude,true,$adress,$capacity,$mechanical,$electrical,$availableSlots);
-            //dd($station);
 
             //persist changes to db
             $entityManager->persist($station);
@@ -52,16 +47,34 @@ class StationController extends AbstractController
 
             ++$iterator;
         }
+/*
+        $url_vehicles = 'https://analisi.transparenciacatalunya.cat/resource/tb2m-m33b.json';
+        $get_json_vehicles = file_get_contents($url_vehicles);
+        $json_vehicles = json_decode($get_json_vehicles);
+        $json_vehicles = (array)$json_vehicles;
 
+        foreach($json_vehicles as $item) { //foreach element in $json
 
+            $tipus_velocitat = $item->tipus_velocitat;
+            $tipus_connexio = $item->tipus_connexi;
+            $latitud = $item->latitud;
+            $longitud = $item->longitud;
+            $potencia = $item->kw;
+            $tipus_corrent = $item->ac_dc;
+            $address = $item->adre_a;
+            $places = $item->nplaces_estaci;
 
+          //  $estacio_recarrega = new RechargeStation($tipus_velocitat,$tipus_connexio,$latitud,$longitud,
+                    //$potencia,$tipus_corrent,$address,$places);
 
+            //persist changes to db
+            //$entityManager->persist($estacio_recarrega);
 
+            //EXECUTE THE ACTUAL QUERIES
+            //$entityManager->flush();
 
-     /*   return $this->render('station/index.html.twig', [
-            'controller_name' => 'StationController',
-        ]);*/
-
+        }
+*/
         return new Response();
     }
 }
