@@ -3,6 +3,7 @@
 namespace App\Controller;
 
 use App\Entity\BicingStation;
+use App\Entity\RechargeStation;
 use Doctrine\Persistence\ManagerRegistry;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
@@ -14,7 +15,7 @@ class StationController extends AbstractController
     public function index(ManagerRegistry $doctrine): Response
     {
         $entityManager = $doctrine->getManager();
-
+/*
         //Get Json of bicing permanent
         $url_information = 'https://api.bsmsa.eu/ext/api/bsm/gbfs/v2/en/station_information';
         $get_json_information = file_get_contents($url_information);
@@ -47,7 +48,7 @@ class StationController extends AbstractController
 
             ++$iterator;
         }
-/*
+*/
         $url_vehicles = 'https://analisi.transparenciacatalunya.cat/resource/tb2m-m33b.json';
         $get_json_vehicles = file_get_contents($url_vehicles);
         $json_vehicles = json_decode($get_json_vehicles);
@@ -55,27 +56,45 @@ class StationController extends AbstractController
 
         foreach($json_vehicles as $item) { //foreach element in $json
 
-            $tipus_velocitat = $item->tipus_velocitat;
-            $tipus_connexio = $item->tipus_connexi;
-            $latitud = $item->latitud;
-            $longitud = $item->longitud;
-            $potencia = $item->kw;
-            $tipus_corrent = $item->ac_dc;
-            $address = $item->adre_a;
-            $places = $item->nplaces_estaci;
+            $speed_type = null;
+            $connection_type = null;
+            $power = null;
+            $current_type = null;
+            $slots = null;
 
-          //  $estacio_recarrega = new RechargeStation($tipus_velocitat,$tipus_connexio,$latitud,$longitud,
-                    //$potencia,$tipus_corrent,$address,$places);
+            if (isset($item->latitud)) {
+                $latitude = (float)$item->latitud;
+                if (isset($item->longitud)) {
+                    $longitude = (float)$item->longitud;
+                } if (isset($item->tipus_velocitat)) {
+                    $speed_type = $item->tipus_velocitat;
+                } if (isset($item->tipus_connexi)) {
+                    $connection_type = $item->tipus_connexi;
+                } if (isset($item->kw)) {
+                    $power = (float)$item->kw;
+                } if (isset($item->ac_dc)) {
+                    $current_type = $item->ac_dc;
+                } if (isset($item->adre_a)) {
+                    $address = $item->adre_a;
+                }
+                else {
+                    $address = "Not available";
+                }
+                if (isset($item->nplaces_estaci)) {
+                    $slots = (int)$item->nplaces_estaci;
+                }
 
-            //persist changes to db
-            //$entityManager->persist($estacio_recarrega);
+                $recharge_station = new RechargeStation($latitude, $longitude, true, $address, $speed_type,
+                    $connection_type, $power, $current_type, $slots);
 
-            //EXECUTE THE ACTUAL QUERIES
-            //$entityManager->flush();
+                //persist changes to db
+                $entityManager->persist($recharge_station);
 
-
+                //EXECUTE THE ACTUAL QUERIES
+                $entityManager->flush();
+            }
         }
-*/
+
         return new Response();
     }
 }
