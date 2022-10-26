@@ -27,7 +27,7 @@ class RechargeStation extends Station
     private ?int $slots = null;
 
     public function __construct(float $latitude, float $longitude, bool $status, string $address, string $speedType,
-                                string $connectionType, float $power, string $currentType, int $slots)
+                                string $connectionType, float $power, string $currentType, int $slots = 0)
     {
         $this->setLatitude($latitude);
         $this->setLongitude($longitude);
