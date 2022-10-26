@@ -53,8 +53,36 @@ class StationController extends AbstractController
         $get_json_vehicles = file_get_contents($url_vehicles);
         $json_vehicles = json_decode($get_json_vehicles);
         $json_vehicles = (array)$json_vehicles;
-
+        $rechargeStation = new RechargeStation();
+        $rechargeStationClass = get_class($rechargeStation);
+        var_dump(get_class($rechargeStation));
+        $adapter["latitud"] = "latitude";
         foreach($json_vehicles as $item) { //foreach element in $json
+            $rechargeStation = new RechargeStation();
+            foreach($item as $attNameRaw => $value){
+                $attName = trim($attNameRaw);
+                $entityAttName = null;
+                if(isset($adapter[$attName])) {
+                    var_dump("\n");
+                    var_dump("valor del adapter");
+                    var_dump("\n");
+                    var_dump($adapter[$attName]);
+                    var_dump("key jsonr");
+                    var_dump("  $attName ");
+                    var_dump("\n");
+                    var_dump($adapter[$attName]);
+
+                    $entityAttName = $adapter[$attName];
+                }
+                if(property_exists($rechargeStationClass, $entityAttName)){
+                    var_dump("-----------------------EXISTS----------------");
+                    $rechargeStation->$entityAttName = $value;
+                }
+            }
+            var_dump("FINAL");
+            dd($rechargeStation);
+            $entityManager->persist($rechargeStation);
+            $entityManager->flush();
 
             $speed_type = null;
             $connection_type = null;
@@ -62,7 +90,7 @@ class StationController extends AbstractController
             $current_type = null;
             $slots = null;
 
-            if (isset($item->latitud)) {
+            if (false && isset($item->latitud)) {
                 $latitude = (float)$item->latitud;
                 if (isset($item->longitud)) {
                     $longitude = (float)$item->longitud;
@@ -93,6 +121,7 @@ class StationController extends AbstractController
                 //EXECUTE THE ACTUAL QUERIES
                 $entityManager->flush();
             }
+
         }
 
         return new Response();

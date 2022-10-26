@@ -6,8 +6,8 @@ use ApiPlatform\Metadata\ApiResource;
 use App\Repository\RechargeStationRepository;
 use Doctrine\ORM\Mapping as ORM;
 
-#[ORM\Entity(repositoryClass: RechargeStationRepository::class)]
 #[ApiResource]
+#[ORM\Entity(repositoryClass: RechargeStationRepository::class)]
 class RechargeStation extends Station
 {
 
@@ -25,7 +25,7 @@ class RechargeStation extends Station
 
     #[ORM\Column(nullable: true)]
     private ?int $slots = null;
-
+/*
     public function __construct(float $latitude, float $longitude, bool $status, string $address, string $speedType,
                                 string $connectionType, float $power, string $currentType, int $slots = 0)
     {
@@ -38,6 +38,9 @@ class RechargeStation extends Station
         $this->setPower($power);
         $this->setCurrentType($currentType);
         $this->setSlots($slots);
+    }*/
+    public function getAtributesSpecific(): ?array{
+        return get_class_vars(get_class($this));
     }
 
     public function getSpeedType(): ?string
