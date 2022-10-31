@@ -66,8 +66,23 @@ class StationController extends AbstractController
         $adapter["nplaces_estaci"] = ["funcName" => "setSlots", "propertyName" => "slots"];
 
 
+       /* $value = "4+2";
+        $value = (int) $value;
+
+        $rechargeStation = new RechargeStation();
+        $rechargeStation->setSlots($value);
+        $rechargeStation->setLatitude(44.5);
+        $rechargeStation->setLongitude(44.5);
+        $rechargeStation->setStatus(true);
+
+        $entityManager->persist($rechargeStation);
+        $entityManager->flush();
+
+        dd($rechargeStation);*/
+
         foreach($json_vehicles as $item) { //foreach element in $json
             $rechargeStation = new RechargeStation();
+            $correct = true;
 
             foreach($item as $attNameRaw => $value){
                 $attName = trim($attNameRaw);
@@ -77,14 +92,27 @@ class StationController extends AbstractController
 
                     if(property_exists(RechargeStation::class, $adapter[$attName]["propertyName"]) || property_exists(Station::class, $adapter[$attName]["propertyName"])){
                         $function_name = $adapter[$attName]["funcName"];
-                        $rechargeStation->$function_name($value);
+
+                        if ($function_name === "latitude" || $function_name === "longitude" || $function_name === "power"){
+                            $value = (float) $value;
+                        }
+
+                        else if ($function_name === "slots"){
+                            $value = (int) $value;
+                        }
+                        try{
+                            $rechargeStation->$function_name($value);
+                        } catch (Exception $e){
+                            //dd("EPAA");
+                            $correct = false;
+                        }
                     }
                 }
             }
 
             $exists_latitude = $rechargeStation->getLatitude();
             $exists_longitude = $rechargeStation->getLongitude();
-            if (isset($exists_latitude) && isset($exists_longitude)){
+            if (isset($exists_latitude) && isset($exists_longitude) && $correct){
                 $rechargeStation->setStatus(true);
 
                 $entityManager->persist($rechargeStation);
