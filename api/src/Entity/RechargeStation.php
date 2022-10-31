@@ -25,23 +25,6 @@ class RechargeStation extends Station
 
     #[ORM\Column(nullable: true)]
     private ?int $slots = null;
-/*
-    public function __construct(float $latitude, float $longitude, bool $status, string $address, string $speedType,
-                                string $connectionType, float $power, string $currentType, int $slots = 0)
-    {
-        $this->setLatitude($latitude);
-        $this->setLongitude($longitude);
-        $this->setStatus($status);
-        $this->setAddress($address);
-        $this->setSpeedType($speedType);
-        $this->setConnectionType($connectionType);
-        $this->setPower($power);
-        $this->setCurrentType($currentType);
-        $this->setSlots($slots);
-    }*/
-    public function getAtributesSpecific(): ?array{
-        return get_class_vars(get_class($this));
-    }
 
     public function getSpeedType(): ?string
     {
