@@ -65,8 +65,8 @@ class StationController extends AbstractController
         $adapter["ac_dc"] = ["funcName" => "setCurrentType", "propertyName" => "currentType"];
         $adapter["nplaces_estaci"] = ["funcName" => "setSlots", "propertyName" => "slots"];
 
-
-       /* $value = "4+2";
+/*
+        $value = "4+2";
         $value = (int) $value;
 
         $rechargeStation = new RechargeStation();
@@ -75,11 +75,13 @@ class StationController extends AbstractController
         $rechargeStation->setLongitude(44.5);
         $rechargeStation->setStatus(true);
 
+        dd($rechargeStation);
+
         $entityManager->persist($rechargeStation);
         $entityManager->flush();
 
-        dd($rechargeStation);*/
-
+        dd($rechargeStation);
+*/
         foreach($json_vehicles as $item) { //foreach element in $json
             $rechargeStation = new RechargeStation();
             $correct = true;
@@ -88,16 +90,18 @@ class StationController extends AbstractController
                 $attName = trim($attNameRaw);
 
                 if(isset($adapter[$attName]["propertyName"])) {
-                    var_dump($value);
+                    //var_dump($value);
 
                     if(property_exists(RechargeStation::class, $adapter[$attName]["propertyName"]) || property_exists(Station::class, $adapter[$attName]["propertyName"])){
                         $function_name = $adapter[$attName]["funcName"];
 
-                        if ($function_name === "latitude" || $function_name === "longitude" || $function_name === "power"){
+                        //dd($adapter[$attName]["propertyName"]);
+                        if ($adapter[$attName]["propertyName"] === "latitude" || $adapter[$attName]["propertyName"] === "longitude" || $adapter[$attName]["propertyName"] === "power"){
+                            //dd("GUARRA");
                             $value = (float) $value;
                         }
 
-                        else if ($function_name === "slots"){
+                        else if ($adapter[$attName]["propertyName"] === "slots"){
                             $value = (int) $value;
                         }
                         try{
