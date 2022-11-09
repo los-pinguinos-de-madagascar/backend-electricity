@@ -24,11 +24,14 @@ class ApiTokenAuthenticator extends AbstractAuthenticator
      */
     public function supports(Request $request): ?bool
     {
-        if($request->getRequestUri() === "/login"){
+
+        if ($request->getRealMethod() === "POST" && ($request->getRequestUri() === "/login" || $request->getRequestUri()  === "/register")){
             return false;
         }
+        if($request->getRequestUri() === "/docs")
+            return false;
         return true;
-        return $request->headers->has('X-AUTH-TOKEN');
+        //return $request->headers->has('X-AUTH-TOKEN');
     }
 
     public function authenticate(Request $request): Passport

@@ -23,15 +23,12 @@ class ApiLoginController extends AbstractController
         $user = new User();
         $entityManager = $doctrine->getManager();
 
-        //access token should be generated here
-        //$access_token = "12345";
-
         $user = $this->getUser();
         $bad_token = true;
-        while ($bad_token) {
-            try {
+        //while ($bad_token) {
+            //try {
                 //calling constructor for apitoken with named paremeters
-                $access_token = bin2hex(random_bytes(255));
+                $access_token = bin2hex(random_bytes(254));
                 $apiToken = new ApiToken(token: $access_token, tokenOwner: $user);
 
                 $user->addApiToken($apiToken);
@@ -39,11 +36,11 @@ class ApiLoginController extends AbstractController
                 $entityManager->persist($user);
                 //EXECUTE THE ACTUAL QUERIES
                 $entityManager->flush();
-            } catch (\Exception $e) {
-                $user->removeApiToken($apiToken);
-            }
+            //} catch (\Exception $e) {
+            //    $user->removeApiToken($apiToken);
+            //}
             $bad_token = false;
-        }
+        //}
         $serialized_tokens = null;
         $tokens = $user->getApiTokens();
         foreach($tokens as $token){
