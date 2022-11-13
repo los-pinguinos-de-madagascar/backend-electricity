@@ -34,6 +34,7 @@ class ApiLoginController extends AbstractController
                 $user->addApiToken($apiToken);
                 //persist changes to db
                 $entityManager->persist($user);
+                $entityManager->persist($apiToken);
                 //EXECUTE THE ACTUAL QUERIES
                 $entityManager->flush();
             //} catch (\Exception $e) {
