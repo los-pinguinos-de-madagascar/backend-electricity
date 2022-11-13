@@ -28,7 +28,7 @@ class ApiLoginController extends AbstractController
         //while ($bad_token) {
             //try {
                 //calling constructor for apitoken with named paremeters
-                $access_token = bin2hex(random_bytes(254));
+                $access_token = bin2hex(random_bytes(125));
                 $apiToken = new ApiToken(token: $access_token, tokenOwner: $user);
 
                 $user->addApiToken($apiToken);
