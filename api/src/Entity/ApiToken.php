@@ -20,7 +20,7 @@ class ApiToken
     private ?string $token = null;
 
     #[ORM\ManyToOne(inversedBy: 'apiTokens', cascade: ["persist"])]
-    #[ORM\JoinColumn(nullable: false, unique: true)]
+    #[ORM\JoinColumn(nullable: false)]
     private ?User $tokenOwner = null;
 
     public function __construct(String $token, User $tokenOwner)

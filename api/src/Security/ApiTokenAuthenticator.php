@@ -3,6 +3,7 @@
 // src/Security/ApiKeyAuthenticator.php
 namespace App\Security;
 
+use App\Repository\UserRepository;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -22,6 +23,12 @@ class ApiTokenAuthenticator extends AbstractAuthenticator
      * used for the request. Returning `false` will cause this authenticator
      * to be skipped.
      */
+    private $userRepository;
+
+    public function __construct(UserRepository $userRepository){
+        $this->userRepository = $userRepository;
+    }
+
     public function supports(Request $request): ?bool
     {
 
@@ -43,8 +50,9 @@ class ApiTokenAuthenticator extends AbstractAuthenticator
             // Code 401 "Unauthorized"
             throw new CustomUserMessageAuthenticationException('No API token provided');
         }
-
-        return new SelfValidatingPassport(new UserBadge($apiToken));
+        return new SelfValidatingPassport(new UserBadge($apiToken, function (string $apiToken){
+            return $this->userRepository->findByApiToken($apiToken);
+        }));
     }
 
     public function onAuthenticationSuccess(Request $request, TokenInterface $token, string $firewallName): ?Response
