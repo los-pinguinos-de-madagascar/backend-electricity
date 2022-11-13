@@ -2,7 +2,9 @@
 
 namespace App\Controller;
 
+use App\Helpers\RouteAlgorithm;
 use App\Repository\RechargeStationRepository;
+use Symfony\Component\HttpFoundation\Request;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
@@ -10,25 +12,30 @@ use Symfony\Component\Routing\Annotation\Route;
 class RouteStationController extends AbstractController
 {
     #[Route('/route/station', name: 'app_route_station', methods: ["GET"])]
-    public function index(Request $request): Response
+    public function index(RechargeStationRepository $rechargeStationRepository, Request $request , RouteAlgorithm $routeAlgorithm): Response
     {
-        //dd("HOLA");
+
         $requestBodyAsJSON = json_decode($request->getContent(), true);
-        //dd("HOLA");
+
         $latitudeA = $requestBodyAsJSON['latitudeA'];
         $longitudeA = $requestBodyAsJSON['longitudeA'];
         $latitudeB = $requestBodyAsJSON['latitudeB'];
         $longitudeB = $requestBodyAsJSON['longitudeB'];
         $numStations = $requestBodyAsJSON['numStations'];
 
-        $mediumlatitude = ($latitudeA + $latitudeB)/2;
-        $mediumlongitude = ($longitudeA + $longitudeB)/2;
+        //dd($latitudeA,$longitudeA,$latitudeB,$longitudeB,$numStations);
 
-        $RechargeStationRepository = new RechargeStationRepository();
-        $RechargeStationRepository->findAll();
+        //$rechargeStationRepository = new RechargeStationRepository();
+        $rechargeStations = $rechargeStationRepository->findAll();
+        //dd($rechargeStations);
 
-        dd($RechargeStationRepository);
+        //$routeAlgorithm = new RouteAlgorithm();
+        $arrayStops = $routeAlgorithm->getArrayStops($numStations,$latitudeA,$longitudeA,$latitudeB, $longitudeB,$rechargeStations);
 
-        return new Response();
+        $presentation =  json_encode($arrayStops, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
+
+        $response = new Response($presentation);
+        $response->headers->set('Content-Type', 'application/json');
+        return $response;
     }
 }

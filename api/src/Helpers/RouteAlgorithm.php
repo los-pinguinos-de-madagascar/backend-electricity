@@ -1,0 +1,121 @@
+<?php
+
+namespace App\Helpers;
+
+class RouteAlgorithm
+{
+    public function getArrayStops($numStations, $latitudeA,$longitudeA, $latitudeB, $longitudeB, $rechargeStations): array
+    {
+
+        //dd($rechargeStations);
+
+        $arrayStops = array();
+        $paramlatitude = 0.0;
+        $paramlongitude = 0.0;
+
+        for ($i = 0; $i < $numStations; $i++){
+            if ($numStations === 1){
+
+                $mediumlatitude = ($latitudeA + $latitudeB)/2;
+                $mediumlongitude = ($longitudeA + $longitudeB)/2;
+
+                $paramlatitude = $mediumlatitude;
+                $paramlongitude = $mediumlongitude;
+            }
+
+            else if ($numStations === 2){
+
+                if ($i === 0){
+
+                    $num1 = $latitudeA + ((1/2)*$latitudeB);
+                    $num2 = $longitudeA + ((1/2)*$longitudeB);
+                    $den = 1 + (1/2);
+
+                    $paramlatitude = $num1/$den;
+                    $paramlongitude = $num2/$den;
+
+                }
+                else if ($i === 1){
+
+                    $num1 = $latitudeA + (2*$latitudeB);
+                    $num2 = $longitudeA + (2*$longitudeB);
+                    $den = 1 + 2;
+
+                    $paramlatitude = $num1/$den;
+                    $paramlongitude = $num2/$den;
+                }
+            }
+
+            else if($numStations === 3){
+
+                $mediumlatitude = ($latitudeA + $latitudeB)/2;
+                $mediumlongitude = ($longitudeA + $longitudeB)/2;
+
+                if ($i === 0){
+                    $paramlatitude = $mediumlatitude/2;
+                    $paramlongitude = $mediumlongitude/2;
+                }
+
+                else if ($i === 1){
+                    $paramlatitude = $mediumlatitude;
+                    $paramlongitude = $mediumlongitude;
+                }
+
+                else if ($i === 2){
+
+                    $paramlatitude = (3*$mediumlatitude)/2;
+                    $paramlongitude = (3*$mediumlongitude)/2;
+
+                }
+            }
+
+            $pairLatLon = $this->getBestRechargeStation($paramlatitude,$paramlongitude,$rechargeStations);
+            $num_elems = array_push($arrayStops, $pairLatLon);
+        }
+
+        //dd($arrayStops);
+
+        return $arrayStops;
+    }
+
+    private function getBestRechargeStation($latitudePoint, $longitudePoint, $rechargeStations): array
+    {
+        $first = true;
+        $bestLatitude = 0.0;
+        $bestLongitude = 0.0;
+
+
+        foreach ($rechargeStations as $station){
+
+            $actLatitude = $station->getLatitude();
+            $actLongitude = $station->getLongitude();
+
+            $pow1 = pow($actLatitude - $latitudePoint, 2);
+            $pow2 = pow($actLongitude - $longitudePoint, 2);
+            $distance = sqrt($pow1 + $pow2);
+
+            if ($first) {
+                $bestDistance = $distance;
+                $bestLatitude = $actLatitude;
+                $bestLongitude = $actLongitude;
+                $first = false;
+            }
+
+            else {
+                if ($distance < $bestDistance){
+                    $bestDistance = $distance;
+                    $bestLatitude = $actLatitude;
+                    $bestLongitude = $actLongitude;
+                }
+            }
+        }
+
+        //dd($bestDistance,$bestLatitude,$bestLongitude);
+
+        $pairLatLon["latitude"] = $bestLatitude;
+        $pairLatLon["longitude"] = $bestLongitude;
+
+        return $pairLatLon;
+    }
+
+}
