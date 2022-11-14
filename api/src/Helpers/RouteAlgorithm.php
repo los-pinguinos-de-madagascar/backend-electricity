@@ -2,7 +2,8 @@
 
 namespace App\Helpers;
 
-class RouteAlgorithm
+class
+RouteAlgorithm
 {
     public function getArrayStops($numStations, $latitudeA,$longitudeA, $latitudeB, $longitudeB, $rechargeStations): array
     {
@@ -52,8 +53,8 @@ class RouteAlgorithm
                 $mediumlongitude = ($longitudeA + $longitudeB)/2;
 
                 if ($i === 0){
-                    $paramlatitude = $mediumlatitude/2;
-                    $paramlongitude = $mediumlongitude/2;
+                    $paramlatitude = ($latitudeA + $mediumlatitude)/2;
+                    $paramlongitude = ($longitudeA + $mediumlongitude)/2;
                 }
 
                 else if ($i === 1){
@@ -63,8 +64,9 @@ class RouteAlgorithm
 
                 else if ($i === 2){
 
-                    $paramlatitude = (3*$mediumlatitude)/2;
-                    $paramlongitude = (3*$mediumlongitude)/2;
+                    $paramlatitude = ($latitudeB + $mediumlatitude)/2;
+                    $paramlongitude = ($longitudeB + $mediumlongitude)/2;
+
 
                 }
             }
@@ -73,7 +75,7 @@ class RouteAlgorithm
             $num_elems = array_push($arrayStops, $pairLatLon);
         }
 
-        //dd($arrayStops);
+        dd($arrayStops);
 
         return $arrayStops;
     }
@@ -90,8 +92,8 @@ class RouteAlgorithm
             $actLatitude = $station->getLatitude();
             $actLongitude = $station->getLongitude();
 
-            $pow1 = pow($actLatitude - $latitudePoint, 2);
-            $pow2 = pow($actLongitude - $longitudePoint, 2);
+            $pow1 = ($actLatitude - $latitudePoint) ** 2;
+            $pow2 = ($actLongitude - $longitudePoint) ** 2;
             $distance = sqrt($pow1 + $pow2);
 
             if ($first) {
