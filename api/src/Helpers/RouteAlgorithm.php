@@ -71,7 +71,7 @@ RouteAlgorithm
                 }
             }
 
-            $pairLatLon = $this->getBestRechargeStation($paramlatitude,$paramlongitude,$rechargeStations);
+            $pairLatLon = $this->getBestRechargeStation($paramlatitude,$paramlongitude,$rechargeStations,$arrayStops);
             $num_elems = array_push($arrayStops, $pairLatLon);
         }
 
@@ -80,7 +80,7 @@ RouteAlgorithm
         return $arrayStops;
     }
 
-    private function getBestRechargeStation($latitudePoint, $longitudePoint, $rechargeStations): array
+    private function getBestRechargeStation($latitudePoint, $longitudePoint, $rechargeStations, $arrayStops): array
     {
         $first = true;
         $bestLatitude = 0.0;
@@ -104,7 +104,8 @@ RouteAlgorithm
             }
 
             else {
-                if ($distance < $bestDistance){
+                if ($distance < $bestDistance && $this->puntNoRepetit($arrayStops, $actLatitude, $actLongitude)){
+                    var_dump($bestLatitude,$bestLongitude);
                     $bestDistance = $distance;
                     $bestLatitude = $actLatitude;
                     $bestLongitude = $actLongitude;
@@ -113,11 +114,17 @@ RouteAlgorithm
         }
 
         //dd($bestDistance,$bestLatitude,$bestLongitude);
-
         $pairLatLon["latitude"] = $bestLatitude;
         $pairLatLon["longitude"] = $bestLongitude;
 
         return $pairLatLon;
+    }
+
+    private function puntNoRepetit($arrayStops, mixed $bestLatitude, mixed $bestLongitude)
+    {
+        $pairLatLon["latitude"] = $bestLatitude;
+        $pairLatLon["longitude"] = $bestLongitude;
+        return (!in_array($pairLatLon, $arrayStops));
     }
 
 }
