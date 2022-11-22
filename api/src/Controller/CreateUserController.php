@@ -12,25 +12,14 @@ use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Symfony\Component\Routing\Annotation\Route;
 use App\Repository\UserRepository;
 use App\Entity\User;
-
-
-
+use Symfony\Component\Serializer\SerializerInterface;
 
 
 class CreateUserController extends AbstractController
 {
     #[Route('/register', methods:["POST"],name: 'app_create_user')]
-    public function index(Request $request, UserRepository $userRepository, UserPasswordHasherInterface $passwordHasher, ManagerRegistry $doctrine): JsonResponse
+    public function index(Request $request, UserRepository $userRepository, UserPasswordHasherInterface $passwordHasher, ManagerRegistry $doctrine, SerializerInterface $serializer): JsonResponse
     {
-        /*
-        $response = new JsonResponse();
-        $response->headers->set('Content-Type', 'application/json');
-        $returnMessage = json_encode(["message"=>"Hola"]);
-        $response->setContent($returnMessage);
-
-        return $response;
-        */
-        // username will be email
 
         $requestBodyAsJSON = json_decode($request->getContent(), true);
 
@@ -39,7 +28,6 @@ class CreateUserController extends AbstractController
 
         $user = $userRepository->findOneBy(['email' => $email]);
 
-        //dd($user);
         $response = new JsonResponse();
         $response->headers->set('Content-Type', 'application/json');
 
@@ -65,12 +53,11 @@ class CreateUserController extends AbstractController
         $em->persist($user);
         $em->flush($user);
 
-        $returnMessage = json_encode(["message"=>"User created succesfully", "token"=>"THIS IS A DUMMY"]);
-
-        $response->setContent($returnMessage);
+        $serializedUser = $serializer->serialize($user,'json');
+        $response->setContent($serializedUser);
         $response->setStatusCode(201);
 
         return $response;
-        //return $user;
+
     }
 }
