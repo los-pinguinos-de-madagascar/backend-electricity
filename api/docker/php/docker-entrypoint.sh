@@ -35,10 +35,16 @@ if [ "$1" = 'php-fpm' ] || [ "$1" = 'php' ] || [ "$1" = 'bin/console' ]; then
 		else
 			echo "The database is now ready and reachable"
 		fi
-
-		if [ "$( find ./migrations -iname '*.php' -print -quit )" ]; then
-			php bin/console doctrine:migrations:migrate --no-interaction
+		if [ $(psql -t -U app -c "SELECT COUNT(*) FROM pg_catalog.pg_tables WHERE schemaname != 'pg_catalog' AND schemaname != 'information_schema';") -eq 0 ]; then
+		    php bin/console doctrine:database:create --no-interaction
+		    php bin/console doctrine:schema:update --no-interaction
+		    eco "------"
+		    eco "Creating database"
+		    eco "------"
 		fi
+#		if [ "$( find ./migrations -iname '*.php' -print -quit )" ]; then
+#		php bin/console doctrine:migrations:migrate --no-interaction
+#		fi
 	fi
 fi
 
