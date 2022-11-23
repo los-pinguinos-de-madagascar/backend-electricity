@@ -52,9 +52,13 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[Assert\NotNull]
     private array $roles = ["ROLE_USER"];
 
+    #[ORM\ManyToMany(targetEntity: Location::class)]
+    private Collection $favouriteLocations;
+
     public function __construct()
     {
         $this->apiTokens = new ArrayCollection();
+        $this->favouriteLocations = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -177,6 +181,30 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function setFullname(string $fullname): self
     {
         $this->fullname = $fullname;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, Location>
+     */
+    public function getFavouriteLocations(): Collection
+    {
+        return $this->favouriteLocations;
+    }
+
+    public function addFavouriteLocation(Location $favouriteLocation): self
+    {
+        if (!$this->favouriteLocations->contains($favouriteLocation)) {
+            $this->favouriteLocations->add($favouriteLocation);
+        }
+
+        return $this;
+    }
+
+    public function removeFavouriteLocation(Location $favouriteLocation): self
+    {
+        $this->favouriteLocations->removeElement($favouriteLocation);
 
         return $this;
     }
