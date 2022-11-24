@@ -23,13 +23,19 @@ class RouteStationController extends AbstractController
         $longitudeB = $requestBodyAsJSON['longitudeB'];
         $numStations = $requestBodyAsJSON['numStations'];
 
-        //dd($latitudeA,$longitudeA,$latitudeB,$longitudeB,$numStations);
 
-        //$rechargeStationRepository = new RechargeStationRepository();
+        $response = new Response();
+        $response->headers->set('Content-Type', 'application/json');
+
+        if (!($numStations >= 1 && $numStations <= 3)) {
+            $returnMessage = json_encode(["message"=>"numStations should be 1, 2 or 3"]);
+            $response->setContent($returnMessage);
+            $response->setStatusCode(412);
+            return $response;
+        }
+
         $rechargeStations = $rechargeStationRepository->findAll();
-        //dd($rechargeStations);
 
-        //$routeAlgorithm = new RouteAlgorithm();
         $arrayStops = $routeAlgorithm->getArrayStops($numStations,$latitudeA,$longitudeA,$latitudeB, $longitudeB,$rechargeStations);
 
         $presentation =  json_encode($arrayStops, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);

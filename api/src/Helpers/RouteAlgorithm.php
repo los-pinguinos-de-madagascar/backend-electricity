@@ -7,9 +7,6 @@ RouteAlgorithm
 {
     public function getArrayStops($numStations, $latitudeA,$longitudeA, $latitudeB, $longitudeB, $rechargeStations): array
     {
-
-        //dd($rechargeStations);
-
         $arrayStops = array();
         $paramlatitude = 0.0;
         $paramlongitude = 0.0;
@@ -72,10 +69,8 @@ RouteAlgorithm
             }
 
             $pairLatLon = $this->getBestRechargeStation($paramlatitude,$paramlongitude,$rechargeStations,$arrayStops);
-            $num_elems = array_push($arrayStops, $pairLatLon);
+            $arrayStops[] = $pairLatLon;
         }
-
-        dd($arrayStops);
 
         return $arrayStops;
     }
@@ -105,7 +100,6 @@ RouteAlgorithm
 
             else {
                 if ($distance < $bestDistance && $this->puntNoRepetit($arrayStops, $actLatitude, $actLongitude)){
-                    var_dump($bestLatitude,$bestLongitude);
                     $bestDistance = $distance;
                     $bestLatitude = $actLatitude;
                     $bestLongitude = $actLongitude;
@@ -113,7 +107,6 @@ RouteAlgorithm
             }
         }
 
-        //dd($bestDistance,$bestLatitude,$bestLongitude);
         $pairLatLon["latitude"] = $bestLatitude;
         $pairLatLon["longitude"] = $bestLongitude;
 
