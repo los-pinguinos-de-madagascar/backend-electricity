@@ -7,7 +7,7 @@ use App\Repository\LocationRepository;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: LocationRepository::class)]
-#[ApiResource]
+//#[ApiResource]
 class Location
 {
     #[ORM\Id]

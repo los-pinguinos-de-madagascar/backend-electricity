@@ -52,7 +52,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[Assert\NotNull]
     private array $roles = ["ROLE_USER"];
 
-    #[ORM\ManyToMany(targetEntity: Location::class)]
+    #[ORM\ManyToMany(targetEntity: Location::class, cascade:["persist"])]
     private Collection $favouriteLocations;
 
     public function __construct()

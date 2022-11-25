@@ -6,7 +6,6 @@ use ApiPlatform\Metadata\ApiResource;
 use App\Repository\ApiTokenRepository;
 use Doctrine\ORM\Mapping as ORM;
 
-#[ApiResource]
 #[ORM\Entity(repositoryClass: ApiTokenRepository::class)]
 
 class ApiToken
