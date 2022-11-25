@@ -14,7 +14,7 @@ use Symfony\Component\Serializer\SerializerInterface;
 class UserController extends AbstractController
 {
     #[Route('/users/{id}/locations', name: 'add_favourite_location', methods: ["POST"])]
-    public function index(Request $request, ManagerRegistry $doctrine, LocationRepository $locationRepository, SerializerInterface $serializer): JsonResponse
+    public function index(Request $request, ManagerRegistry $doctrine, SerializerInterface $serializer): JsonResponse
     {
         $user = $this->getUser();
         $entityManager = $doctrine->getManager();
@@ -32,4 +32,30 @@ class UserController extends AbstractController
         $response->setStatusCode(201);
         return $response;
     }
+
+    #[Route('/users/{id}/locations/{idLocation}', name: 'delete_favourite_location', methods: ["DELETE"])]
+    public function delete(ManagerRegistry $doctrine, SerializerInterface $serializer, LocationRepository $locationRepository, int $idLocation): JsonResponse
+    {
+        $user = $this->getUser();
+        $entityManager = $doctrine->getManager();
+        $response = new JsonResponse();
+
+        $location = $locationRepository->find($idLocation);
+
+        if ($location === null){
+            $returnMessage = json_encode(["message"=>"Location does not exist"]);
+            $response->setContent($returnMessage);
+            $response->setStatusCode(404);
+            return $response;
+        }
+
+        $user->removeFavouriteLocation($location);
+        $entityManager->remove($location);
+        $entityManager->flush();
+
+        $response->setContent($serializer->serialize($user,'json'));
+        $response->setStatusCode(201);
+        return $response;
+    }
+
 }
