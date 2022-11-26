@@ -11,7 +11,7 @@ use Symfony\Component\Routing\Annotation\Route;
 
 class RouteStationController extends AbstractController
 {
-    #[Route('/route/station', name: 'app_route_station', methods: ["GET"])]
+    #[Route('/route/station', name: 'app_route_station', methods: ["POST"])]
     public function index(RechargeStationRepository $rechargeStationRepository, Request $request , RouteAlgorithm $routeAlgorithm): Response
     {
 
