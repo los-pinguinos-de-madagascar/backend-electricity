@@ -42,13 +42,15 @@ class ApiLoginController extends AbstractController
         foreach($tokens as $token){
             $serializedTokens[] = $token->getToken();
         }
-        $jsonizedTokens = $serializer->serialize($serializedTokens, 'json');
-        $user->userTokens = $jsonizedTokens;
-        $serializedUser = $serializer->serialize($user,'json');
-        $serializedUser = json_decode($serializedUser);
-        $serializedUser->apiTokensValues = $serializedTokens;
-        $serializedUser = json_encode($serializedUser);
-        $response->setContent($serializedUser);
+
+//        $jsonizedTokens = $serializer->serialize($serializedTokens, 'json');
+//        $serializedUser = $serializer->serialize($user,'json');
+//
+//        $serializedUser = json_decode($serializedUser);
+//        $serializedUser->apiTokensValues = $serializedTokens;
+//        $serializedUser = json_encode($serializedUser);
+
+        $response->setContent($serializer->serialize($user,'json'));
         $response->setStatusCode(201);
 
         return $response;
