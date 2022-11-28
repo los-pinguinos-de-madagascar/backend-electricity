@@ -27,12 +27,6 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column(length: 180, unique: true, nullable: false)]
     #[Assert\NotBlank]
     #[Assert\Email]
-    #[ApiProperty(
-        openapiContext: [
-            'type' => 'string',
-            'exmample' => 'electri@gmail.com'
-        ]
-    )]
     private ?string $email = null;
 
     #[ORM\Column(nullable: false)]
@@ -45,20 +39,13 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $fullname = null;
 
-    #[ORM\OneToMany(mappedBy: 'tokenOwner', targetEntity: ApiToken::class, orphanRemoval: true)]
-    private Collection $apiTokens;
-
     #[ORM\Column]
     #[Assert\NotNull]
     private array $roles = ["ROLE_USER"];
 
-    #[ORM\ManyToMany(targetEntity: Location::class, cascade:["persist"])]
-    private Collection $favouriteLocations;
-
     public function __construct()
     {
         $this->apiTokens = new ArrayCollection();
-        $this->favouriteLocations = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -181,30 +168,6 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function setFullname(string $fullname): self
     {
         $this->fullname = $fullname;
-
-        return $this;
-    }
-
-    /**
-     * @return Collection<int, Location>
-     */
-    public function getFavouriteLocations(): Collection
-    {
-        return $this->favouriteLocations;
-    }
-
-    public function addFavouriteLocation(Location $favouriteLocation): self
-    {
-        if (!$this->favouriteLocations->contains($favouriteLocation)) {
-            $this->favouriteLocations->add($favouriteLocation);
-        }
-
-        return $this;
-    }
-
-    public function removeFavouriteLocation(Location $favouriteLocation): self
-    {
-        $this->favouriteLocations->removeElement($favouriteLocation);
 
         return $this;
     }
