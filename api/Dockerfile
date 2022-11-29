@@ -9,11 +9,6 @@ ENV APP_ENV=prod
 WORKDIR /srv/app
 
 # persistent / runtime deps
-
-ADD https://github.com/mlocati/docker-php-extension-installer/releases/latest/download/install-php-extensions /usr/local/bin/
-
-RUN chmod +x /usr/local/bin/install-php-extensions && sync && install-php-extensions http
-
 RUN apk add --no-cache \
 		acl \
 		fcgi \
@@ -110,10 +105,6 @@ FROM app_php AS app_php_dev
 
 ENV APP_ENV=dev XDEBUG_MODE=off
 VOLUME /srv/app/var/
-
-ADD https://github.com/mlocati/docker-php-extension-installer/releases/latest/download/install-php-extensions /usr/local/bin/
-
-RUN chmod +x /usr/local/bin/install-php-extensions && sync && install-php-extensions http
 
 RUN rm $PHP_INI_DIR/conf.d/app.prod.ini; \
 	mv "$PHP_INI_DIR/php.ini" "$PHP_INI_DIR/php.ini-production"; \

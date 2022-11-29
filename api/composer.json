@@ -4,7 +4,6 @@
     "require": {
         "php": ">=8.1",
         "ext-ctype": "*",
-        "ext-http": "*",
         "ext-iconv": "*",
         "api-platform/core": "^3.0",
         "composer/package-versions-deprecated": "1.11.99.5",
@@ -13,7 +12,6 @@
         "doctrine/doctrine-migrations-bundle": "^3.2",
         "doctrine/orm": "^2.12",
         "guzzlehttp/guzzle": "^7.4",
-        "lexik/jwt-authentication-bundle": "^2.16",
         "nelmio/cors-bundle": "^2.2",
         "phpdocumentor/reflection-docblock": "^5.3",
         "symfony/asset": "6.1.*",
@@ -31,7 +29,8 @@
         "symfony/serializer": "6.1.*",
         "symfony/twig-bundle": "6.1.*",
         "symfony/validator": "6.1.*",
-        "symfony/yaml": "6.1.*"
+        "symfony/yaml": "6.1.*",
+        "ext-http": "*"
     },
     "require-dev": {
         "api-platform/schema-generator": "^5.0",
