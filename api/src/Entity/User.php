@@ -55,10 +55,18 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\ManyToMany(targetEntity: Location::class, cascade:["persist"])]
     private Collection $favouriteLocations;
 
+    #[ORM\ManyToMany(targetEntity: BicingStation::class)]
+    private Collection $favouriteBicingStations;
+
+    #[ORM\ManyToMany(targetEntity: RechargeStation::class)]
+    private Collection $favouriteRechargeStations;
+
     public function __construct()
     {
         $this->apiTokens = new ArrayCollection();
         $this->favouriteLocations = new ArrayCollection();
+        $this->favouriteBicingStations = new ArrayCollection();
+        $this->favouriteRechargeStations = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -205,6 +213,54 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function removeFavouriteLocation(Location $favouriteLocation): self
     {
         $this->favouriteLocations->removeElement($favouriteLocation);
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, BicingStation>
+     */
+    public function getFavouriteBicingStations(): Collection
+    {
+        return $this->favouriteBicingStations;
+    }
+
+    public function addFavouriteBicingStation(BicingStation $favouriteBicingStation): self
+    {
+        if (!$this->favouriteBicingStations->contains($favouriteBicingStation)) {
+            $this->favouriteBicingStations->add($favouriteBicingStation);
+        }
+
+        return $this;
+    }
+
+    public function removeFavouriteBicingStation(BicingStation $favouriteBicingStation): self
+    {
+        $this->favouriteBicingStations->removeElement($favouriteBicingStation);
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, RechargeStation>
+     */
+    public function getFavouriteRechargeStations(): Collection
+    {
+        return $this->favouriteRechargeStations;
+    }
+
+    public function addFavouriteRechargeStation(RechargeStation $favouriteRechargeStation): self
+    {
+        if (!$this->favouriteRechargeStations->contains($favouriteRechargeStation)) {
+            $this->favouriteRechargeStations->add($favouriteRechargeStation);
+        }
+
+        return $this;
+    }
+
+    public function removeFavouriteRechargeStation(RechargeStation $favouriteRechargeStation): self
+    {
+        $this->favouriteRechargeStations->removeElement($favouriteRechargeStation);
 
         return $this;
     }
