@@ -7,6 +7,7 @@ use App\Repository\UserRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
+use PhpParser\Node\Expr\Array_;
 use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
 use Symfony\Component\Validator\Constraints as Assert;
@@ -32,7 +33,6 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
             'exmample' => 'electri@gmail.com'
         ]
     )]
-    #[Groups(['user'])]
     private ?string $email = null;
 
     #[ORM\Column(nullable: false)]
@@ -40,24 +40,33 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     private ?string $password = null;
 
     #[ORM\Column(length: 255)]
-    #[Groups(['user'])]
     private ?string $username = null;
 
     #[ORM\Column(length: 255, nullable: true)]
-    #[Groups(['user'])]
     private ?string $fullname = null;
 
     #[ORM\OneToMany(mappedBy: 'tokenOwner', targetEntity: ApiToken::class, orphanRemoval: true)]
-    #[Groups(['user'])]
     private Collection $apiTokens;
 
     #[ORM\Column]
     #[Assert\NotNull]
     private array $roles = ["ROLE_USER"];
 
+    #[ORM\ManyToMany(targetEntity: Location::class, cascade:["persist"])]
+    private Collection $favouriteLocations;
+
+    #[ORM\ManyToMany(targetEntity: BicingStation::class)]
+    private Collection $favouriteBicingStations;
+
+    #[ORM\ManyToMany(targetEntity: RechargeStation::class)]
+    private Collection $favouriteRechargeStations;
+
     public function __construct()
     {
         $this->apiTokens = new ArrayCollection();
+        $this->favouriteLocations = new ArrayCollection();
+        $this->favouriteBicingStations = new ArrayCollection();
+        $this->favouriteRechargeStations = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -183,4 +192,77 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 
         return $this;
     }
+
+    /**
+     * @return Collection<int, Location>
+     */
+    public function getFavouriteLocations(): Collection
+    {
+        return $this->favouriteLocations;
+    }
+
+    public function addFavouriteLocation(Location $favouriteLocation): self
+    {
+        if (!$this->favouriteLocations->contains($favouriteLocation)) {
+            $this->favouriteLocations->add($favouriteLocation);
+        }
+
+        return $this;
+    }
+
+    public function removeFavouriteLocation(Location $favouriteLocation): self
+    {
+        $this->favouriteLocations->removeElement($favouriteLocation);
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, BicingStation>
+     */
+    public function getFavouriteBicingStations(): Collection
+    {
+        return $this->favouriteBicingStations;
+    }
+
+    public function addFavouriteBicingStation(BicingStation $favouriteBicingStation): self
+    {
+        if (!$this->favouriteBicingStations->contains($favouriteBicingStation)) {
+            $this->favouriteBicingStations->add($favouriteBicingStation);
+        }
+
+        return $this;
+    }
+
+    public function removeFavouriteBicingStation(BicingStation $favouriteBicingStation): self
+    {
+        $this->favouriteBicingStations->removeElement($favouriteBicingStation);
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, RechargeStation>
+     */
+    public function getFavouriteRechargeStations(): Collection
+    {
+        return $this->favouriteRechargeStations;
+    }
+
+    public function addFavouriteRechargeStation(RechargeStation $favouriteRechargeStation): self
+    {
+        if (!$this->favouriteRechargeStations->contains($favouriteRechargeStation)) {
+            $this->favouriteRechargeStations->add($favouriteRechargeStation);
+        }
+
+        return $this;
+    }
+
+    public function removeFavouriteRechargeStation(RechargeStation $favouriteRechargeStation): self
+    {
+        $this->favouriteRechargeStations->removeElement($favouriteRechargeStation);
+
+        return $this;
+    }
+
 }
