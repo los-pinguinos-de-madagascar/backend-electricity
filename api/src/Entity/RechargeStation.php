@@ -4,6 +4,8 @@ namespace App\Entity;
 
 use ApiPlatform\Metadata\ApiResource;
 use App\Repository\RechargeStationRepository;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ApiResource]
@@ -25,6 +27,14 @@ class RechargeStation extends Station
 
     #[ORM\Column(nullable: true)]
     private ?int $slots = null;
+
+    #[ORM\OneToMany(mappedBy: 'rechargeStation', targetEntity: Reservation::class, orphanRemoval: true)]
+    private Collection $reservations;
+
+    public function __construct()
+    {
+        $this->reservations = new ArrayCollection();
+    }
 
     public function getSpeedType(): ?string
     {
@@ -82,6 +92,36 @@ class RechargeStation extends Station
     public function setSlots(?int $slots): self
     {
         $this->slots = $slots;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, Reservation>
+     */
+    public function getReservations(): Collection
+    {
+        return $this->reservations;
+    }
+
+    public function addReservation(Reservation $reservation): self
+    {
+        if (!$this->reservations->contains($reservation)) {
+            $this->reservations->add($reservation);
+            $reservation->setRechargeStation($this);
+        }
+
+        return $this;
+    }
+
+    public function removeReservation(Reservation $reservation): self
+    {
+        if ($this->reservations->removeElement($reservation)) {
+            // set the owning side to null (unless already changed)
+            if ($reservation->getRechargeStation() === $this) {
+                $reservation->setRechargeStation(null);
+            }
+        }
 
         return $this;
     }
