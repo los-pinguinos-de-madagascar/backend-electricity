@@ -5,6 +5,7 @@ namespace App\Controller;
 use App\Entity\Reservation;
 use App\Repository\RechargeStationRepository;
 use App\Repository\ReservationRepository;
+use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\Persistence\ManagerRegistry;
 use Monolog\DateTimeImmutable;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -16,7 +17,7 @@ use Symfony\Component\Serializer\SerializerInterface;
 class ReservationController extends AbstractController
 {
     #[Route('/reservations', name: 'create_reservation', methods: 'POST')]
-    public function index(Request $request, RechargeStationRepository $rechargeStationRepository, SerializerInterface $serializer,ReservationRepository $reservationRepository): JsonResponse
+    public function index(Request $request, RechargeStationRepository $rechargeStationRepository, EntityManagerInterface $entityManager ,SerializerInterface $serializer,ReservationRepository $reservationRepository): JsonResponse
     {
         $requestBodyAsJSON = json_decode($request->getContent(), true);
 
@@ -31,6 +32,7 @@ class ReservationController extends AbstractController
         $user = $this->getUser();
 
         $response = new JsonResponse();
+        $response->headers->set('Content-Type', 'application/json');
 
         $station = $rechargeStationRepository->find($idStation);
         if ($station == null) {
@@ -40,8 +42,19 @@ class ReservationController extends AbstractController
             return $response;
         }
 
-        else if ($dataIni >= $dataFi) {
-            $returnMessage = json_encode(["message"=>"Wrong dates input"]);
+        if ($dataIni >= $dataFi) {
+            $returnMessage = json_encode(["message"=>"Wrong input, dataFi should be later than dataIni"]);
+            $response->setContent($returnMessage);
+            $response->setStatusCode(403);
+            return $response;
+        }
+
+        $diff = $dataIni->diff($dataFi);
+        $hours = $diff->h;
+        $minutes = $diff->i;
+
+        if ($hours > 3 || ($hours === 3 && $minutes !== 0)) {
+            $returnMessage = json_encode(["message"=>"The maximum time for a reservation is 3 hours"]);
             $response->setContent($returnMessage);
             $response->setStatusCode(403);
             return $response;
@@ -56,9 +69,9 @@ class ReservationController extends AbstractController
                 $count++;
                 $finalReservations[] = $reservation;
                 if($count === $slots || (($slots === null) && ($count === 1))) {
-//                    ["message" => "There are not availale slots for this date-time to reserve"]
-                    $response->headers->set('Content-Type', 'application/json');
-                    $response->setContent($serializer->serialize($finalReservations,'json'));
+                    $responseArray['message'] = "There are not available slots for this date-time to reserve";
+                    $responseArray['data'] = $finalReservations;
+                    $response->setContent($serializer->serialize($responseArray,'json'));
                     $response->setStatusCode(403);
                     return $response;
                 }
@@ -70,7 +83,9 @@ class ReservationController extends AbstractController
         $newReservation->setRechargeStation($station);
         $newReservation->setUserReservation($user);
 
-        $response->headers->set('Content-Type', 'application/json');
+        $entityManager->persist($newReservation);
+        $entityManager->flush();
+
         $response->setContent($serializer->serialize($newReservation,'json'));
         $response->setStatusCode(201);
         return $response;
@@ -80,11 +95,11 @@ class ReservationController extends AbstractController
     {
         $dataIniRes = $reservation->getDataIni();
         $dataFiRes = $reservation->getDataFi();
-        if ((($dataIni <= $dataIniRes) && ($dataIniRes < $dataFi)) || (($dataIni <= $dataFiRes) && ($dataFiRes < $dataFi))) return true;
+        if ((($dataIni <= $dataIniRes) && ($dataIniRes < $dataFi)) || (($dataIni < $dataFiRes) && ($dataFiRes <= $dataFi))) return true;
         return false;
     }
 
-    #[Route('/reservations/update', name: 'update_reservation', methods: 'DELETE')]
+    #[Route('/reservations/actualization', name: 'update_reservation', methods: 'DELETE')]
     public function actualitzaDB(ReservationRepository $reservationRepository, ManagerRegistry $doctrine)
     {
         $entityManager = $doctrine->getManager();
