@@ -5,6 +5,8 @@ namespace App\Controller;
 use App\Entity\BicingStation;
 use App\Entity\RechargeStation;
 use App\Entity\Station;
+use App\Repository\BicingStationRepository;
+use App\Repository\RechargeStationRepository;
 use Doctrine\Persistence\ManagerRegistry;
 use EasyRdf\Exception;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -16,17 +18,19 @@ class StationController extends AbstractController
     /**
      * @throws Exception
      */
-    #[Route('/station_bicing', name: 'app_station')]
-    public function index(ManagerRegistry $doctrine): Response
+    #[Route('/stations', name: 'refresh_stations')]
+    public function index(ManagerRegistry $doctrine, BicingStationRepository $bicingStationRepository, RechargeStationRepository $rechargeStationRepository): Response
     {
-        $this->getRechargeStations($doctrine);
-        $this->getBicingStations($doctrine);
+        $this->getRechargeStations($doctrine,$rechargeStationRepository);
+        $this->getBicingStations($doctrine, $bicingStationRepository);
         return new Response();
     }
 
-    private function getBicingStations(ManagerRegistry $doctrine): void
+    private function getBicingStations(ManagerRegistry $doctrine, BicingStationRepository $bicingStationRepository): void
     {
         $entityManager = $doctrine->getManager();
+
+
         //Get Json of bicing permanent
         $urlInformation = 'https://api.bsmsa.eu/ext/api/bsm/gbfs/v2/en/station_information';
         $getJsonInformation = file_get_contents($urlInformation);
@@ -39,41 +43,102 @@ class StationController extends AbstractController
         $jsonStatus = json_decode($getJsonStatus);
         $jsonStatus = (array)$jsonStatus->data;
 
-        $iterator = 0;
-        foreach ($jsonInformation['stations'] as $item) { //foreach element in $json
+        $bicingStations = $bicingStationRepository->findAll();
+        if ($bicingStations === null){
 
-            $bicingStation = new BicingStation();
+            $iterator = 0;
+            foreach ($jsonInformation['stations'] as $item) { //foreach element in $json
 
-            $latitude = $item->lat;
-            $longitude = $item->lon;
-            $address = $item->address;
-            $capacity = $item->capacity;
-            $mechanical = $jsonStatus['stations'][$iterator]->num_bikes_available_types->mechanical;
-            $electrical = $jsonStatus['stations'][$iterator]->num_bikes_available_types->ebike;
-            $availableSlots = $jsonStatus['stations'][$iterator]->num_docks_available;
+                $bicingStation = new BicingStation();
 
-            $bicingStation->setLatitude($latitude);
-            $bicingStation->setLongitude($longitude);
-            $bicingStation->setStatus(true);
-            $bicingStation->setAddress($address);
-            $bicingStation->setCapacity($capacity);
-            $bicingStation->setMechanical($mechanical);
-            $bicingStation->setElectrical($electrical);
-            $bicingStation->setAvailableSlots($availableSlots);
+                $latitude = $item->lat;
+                $longitude = $item->lon;
+                $address = $item->address;
+                $capacity = $item->capacity;
+                $mechanical = $jsonStatus['stations'][$iterator]->num_bikes_available_types->mechanical;
+                $electrical = $jsonStatus['stations'][$iterator]->num_bikes_available_types->ebike;
+                $availableSlots = $jsonStatus['stations'][$iterator]->num_docks_available;
 
-            //persist changes to db
-            $entityManager->persist($bicingStation);
-            //EXECUTE THE ACTUAL QUERIES
-            $entityManager->flush();
+                $bicingStation->setLatitude($latitude);
+                $bicingStation->setLongitude($longitude);
+                $bicingStation->setStatus(true);
+                $bicingStation->setAddress($address);
+                $bicingStation->setCapacity($capacity);
+                $bicingStation->setMechanical($mechanical);
+                $bicingStation->setElectrical($electrical);
+                $bicingStation->setAvailableSlots($availableSlots);
 
-            ++$iterator;
+                //persist changes to db
+                $entityManager->persist($bicingStation);
+                //EXECUTE THE ACTUAL QUERIES
+                $entityManager->flush();
+
+                ++$iterator;
+            }
         }
+
+        else{
+
+            $iterator = 0;
+            foreach ($jsonInformation['stations'] as $item) { //foreach element in $json
+
+                $latitude = $item->lat;
+                $longitude = $item->lon;
+
+                $bicingStation = $bicingStationRepository->findOneBy([
+                    'latitude' => $latitude,
+                    'longitude' => $longitude,
+                ]);
+
+                $address = $item->address;
+                $capacity = $item->capacity;
+                $mechanical = $jsonStatus['stations'][$iterator]->num_bikes_available_types->mechanical;
+                $electrical = $jsonStatus['stations'][$iterator]->num_bikes_available_types->ebike;
+                $availableSlots = $jsonStatus['stations'][$iterator]->num_docks_available;
+
+                if ($bicingStation !== null){
+
+                    if($bicingStation->getAddress() !== $address) $bicingStation->setAddress($address);
+                    if($bicingStation->getCapacity() !== $capacity) $bicingStation->setCapacity($capacity);
+                    if($bicingStation->getMechanical() !== $mechanical) $bicingStation->setMechanical($mechanical);
+                    if($bicingStation->getElectrical() !== $electrical) $bicingStation->setElectrical($electrical);
+                    if($bicingStation->getAvailableSlots() !== $availableSlots) $bicingStation->setAvailableSlots($availableSlots);
+
+
+                    //EXECUTE THE ACTUAL QUERIES
+                    $entityManager->flush();
+                }
+
+                else {
+                    $bicingStation = new BicingStation();
+
+                    $bicingStation->setLatitude($latitude);
+                    $bicingStation->setLongitude($longitude);
+                    $bicingStation->setStatus(true);
+                    $bicingStation->setAddress($address);
+                    $bicingStation->setCapacity($capacity);
+                    $bicingStation->setMechanical($mechanical);
+                    $bicingStation->setElectrical($electrical);
+                    $bicingStation->setAvailableSlots($availableSlots);
+
+                    //persist changes to db
+                    $entityManager->persist($bicingStation);
+                    //EXECUTE THE ACTUAL QUERIES
+                    $entityManager->flush();
+
+                }
+
+                ++$iterator;
+            }
+
+        }
+
     }
 
     /**
      * @throws Exception
      */
-    private function getRechargeStations(ManagerRegistry $doctrine): void
+    private function getRechargeStations(ManagerRegistry $doctrine, RechargeStationRepository $rechargeStationRepository): void
     {
         $entityManager = $doctrine->getManager();
         $urlVehicles = 'https://analisi.transparenciacatalunya.cat/resource/tb2m-m33b.json';
@@ -90,41 +155,95 @@ class StationController extends AbstractController
         $adapter["ac_dc"] = ["funcName" => "setCurrentType", "propertyName" => "currentType"];
         $adapter["nplaces_estaci"] = ["funcName" => "setSlots", "propertyName" => "slots"];
 
-        foreach ($jsonVehicles as $item) { //foreach element in $json
-            $rechargeStation = new RechargeStation();
+        $rechargeStations = $rechargeStationRepository->findAll();
 
-            foreach ($item as $attNameRaw => $value) {
-                $attName = trim($attNameRaw);
+        if ($rechargeStations === null){
+            foreach ($jsonVehicles as $item) { //foreach element in $json
+                $this->iterationsThroughJson($item, $entityManager);
+            }
+        }
 
-                if (isset($adapter[$attName]["propertyName"])) {
+        else{
+            foreach ($jsonVehicles as $item) { //foreach element in $json
+                $latStr = $item->latitud;
+                $lonStr = $item->longitud;
 
-                    if (property_exists(RechargeStation::class, $adapter[$attName]["propertyName"]) || property_exists(Station::class, $adapter[$attName]["propertyName"])) {
-                        $functionName = $adapter[$attName]["funcName"];
+                $latitude = (float)$latStr;
+                $longitude = (float)$lonStr;
 
-                        if ($adapter[$attName]["propertyName"] === "latitude" || $adapter[$attName]["propertyName"] === "longitude" || $adapter[$attName]["propertyName"] === "power") {
-                            $value = (float)$value;
-                        } else if ($adapter[$attName]["propertyName"] === "slots") {
-                            $value = (int)$value;
-                        }
+                $rechargeStation= $rechargeStationRepository->findOneBy([
+                    'latitude' => $latitude,
+                    'longitude' => $longitude,
+                ]);
 
-                        try {
-                            $rechargeStation->$functionName($value);
-                        } catch (Exception $e) {
-                            throw new Exception($e); //TODO
+                if ($rechargeStation !== null){
+                    foreach ($item as $attNameRaw => $value) {
+                        $attName = trim($attNameRaw);
+                        if (isset($adapter[$attName]["propertyName"])) {
+                            if (property_exists(RechargeStation::class, $adapter[$attName]["propertyName"]) || property_exists(Station::class, $adapter[$attName]["propertyName"])) {
+                                $functionName = $adapter[$attName]["funcName"];
+
+                                if ($adapter[$attName]["propertyName"] === "power") $value = (float)$value;
+                                else if ($adapter[$attName]["propertyName"] === "slots") $value = (int)$value;
+
+                                try {
+                                    $rechargeStation->$functionName($value);
+                                } catch (Exception $e) {
+                                    throw new Exception($e);
+                                }
+                            }
                         }
                     }
-                }
-            }
 
-            $existsLatitude = $rechargeStation->getLatitude();
-            $existsLongitude = $rechargeStation->getLongitude();
-            if (isset($existsLatitude) && isset($existsLongitude)) {
-                $rechargeStation->setStatus(true);
-                $entityManager->persist($rechargeStation);
-                $entityManager->flush();
+                    $existsLatitude = $rechargeStation->getLatitude();
+                    $existsLongitude = $rechargeStation->getLongitude();
+                    if (isset($existsLatitude) && isset($existsLongitude)) {
+                        $entityManager->flush();
+                    }
+                }
+
+                else{
+                    $this->iterationsThroughJson($item, $entityManager);
+                }
             }
         }
     }
 
+    /**
+     * @throws Exception
+     */
+    private function iterationsThroughJson($item, $entityManager): void
+    {
+        $rechargeStation = new RechargeStation();
+        foreach ($item as $attNameRaw => $value) {
+            $attName = trim($attNameRaw);
+            if (isset($adapter[$attName]["propertyName"])) {
+
+                if (property_exists(RechargeStation::class, $adapter[$attName]["propertyName"]) || property_exists(Station::class, $adapter[$attName]["propertyName"])) {
+                    $functionName = $adapter[$attName]["funcName"];
+
+                    if ($adapter[$attName]["propertyName"] === "latitude" || $adapter[$attName]["propertyName"] === "longitude" || $adapter[$attName]["propertyName"] === "power") {
+                        $value = (float)$value;
+                    } else if ($adapter[$attName]["propertyName"] === "slots") {
+                        $value = (int)$value;
+                    }
+
+                    try {
+                        $rechargeStation->$functionName($value);
+                    } catch (Exception $e) {
+                        throw new Exception($e);
+                    }
+                }
+            }
+        }
+
+        $existsLatitude = $rechargeStation->getLatitude();
+        $existsLongitude = $rechargeStation->getLongitude();
+        if (isset($existsLatitude) && isset($existsLongitude)) {
+            $rechargeStation->setStatus(true);
+            $entityManager->persist($rechargeStation);
+            $entityManager->flush();
+        }
+    }
 }
 
