@@ -64,8 +64,8 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\OneToMany(mappedBy: 'sender', targetEntity: Message::class, orphanRemoval: true)]
     private Collection $messagesSender;
 
-    #[ORM\OneToMany(mappedBy: 'reciever', targetEntity: Message::class, orphanRemoval: true)]
-    private Collection $messagesReciever;
+    #[ORM\OneToMany(mappedBy: 'receiver', targetEntity: Message::class, orphanRemoval: true)]
+    private Collection $messagesReceiver;
 
     public function __construct()
     {
@@ -74,7 +74,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         $this->favouriteBicingStations = new ArrayCollection();
         $this->favouriteRechargeStations = new ArrayCollection();
         $this->messagesSender = new ArrayCollection();
-        $this->messagesReciever = new ArrayCollection();
+        $this->messagesReceiver = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -306,27 +306,27 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     /**
      * @return Collection<int, Message>
      */
-    public function getMessagesReciever(): Collection
+    public function getMessagesReceiver(): Collection
     {
-        return $this->messagesReciever;
+        return $this->messagesReceiver;
     }
 
-    public function addMessagesReciever(Message $messagesReciever): self
+    public function addMessagesReceiver(Message $messagesReceiver): self
     {
-        if (!$this->messagesReciever->contains($messagesReciever)) {
-            $this->messagesReciever->add($messagesReciever);
-            $messagesReciever->setReciever($this);
+        if (!$this->messagesReceiver->contains($messagesReceiver)) {
+            $this->messagesReceiver->add($messagesReceiver);
+            $messagesReceiver->setReceiver($this);
         }
 
         return $this;
     }
 
-    public function removeMessagesReciever(Message $messagesReciever): self
+    public function removeMessagesReceiver(Message $messagesReceiver): self
     {
-        if ($this->messagesReciever->removeElement($messagesReciever)) {
+        if ($this->messagesReceiver->removeElement($messagesReceiver)) {
             // set the owning side to null (unless already changed)
-            if ($messagesReciever->getReciever() === $this) {
-                $messagesReciever->setReciever(null);
+            if ($messagesReceiver->getReceiver() === $this) {
+                $messagesReceiver->setReceiver(null);
             }
         }
 
