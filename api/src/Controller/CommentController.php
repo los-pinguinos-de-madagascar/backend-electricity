@@ -2,9 +2,7 @@
 
 namespace App\Controller;
 
-use App\Entity\BicingStation;
 use App\Entity\Comment;
-use App\Entity\RechargeStation;
 use App\Repository\BicingStationRepository;
 use App\Repository\CommentRepository;
 use App\Repository\RechargeStationRepository;
@@ -12,7 +10,6 @@ use DateTimeImmutable;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
-use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Serializer\SerializerInterface;
 use Symfony\Component\HttpFoundation\Request;
@@ -173,6 +170,36 @@ class CommentController extends AbstractController
         $responseArray['message'] = "Comment $idComment modified";
         $responseArray['comment'] = $comment;
         $response->setContent($serializer->serialize($responseArray,'json'));
+        return $response;
+    }
+
+    #[Route('/users/{idUser}/comments/{idComment}', name: 'delete_comment', methods: ["DELETE"])]
+    public function deleteFavouriteBicingStation(EntityManagerInterface $entityManager, SerializerInterface $serializer, CommentRepository $commentRepository, int $idComment): JsonResponse
+    {
+        $user = $this->getUser();
+        $response = new JsonResponse();
+
+        $comment = $commentRepository->find($idComment);
+
+        if ($comment === null){
+            $returnMessage = json_encode(["message"=>"Comment does not exist"]);
+            $response->setContent($returnMessage);
+            $response->setStatusCode(404);
+            return $response;
+        }
+
+        if ($comment->getUserOwner()->getId() !== $user->getId()){
+            $returnMessage = json_encode(["Not Authorized, the user is not the owner of the comment"]);
+            $response->setContent($returnMessage);
+            $response->setStatusCode(401);
+            return $response;
+        }
+
+        $user->removeComment($comment);
+        $entityManager->flush();
+
+        $response->setContent($serializer->serialize($user,'json'));
+        $response->setStatusCode(200);
         return $response;
     }
 }
