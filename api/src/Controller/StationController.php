@@ -9,6 +9,7 @@ use App\Repository\BicingStationRepository;
 use App\Repository\RechargeStationRepository;
 use Doctrine\Persistence\ManagerRegistry;
 use EasyRdf\Exception;
+use PhpParser\Node\Expr\Empty_;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
@@ -44,7 +45,8 @@ class StationController extends AbstractController
         $jsonStatus = (array)$jsonStatus->data;
 
         $bicingStations = $bicingStationRepository->findAll();
-        if ($bicingStations === null){
+
+        if (empty($bicingStations)){
 
             $iterator = 0;
             foreach ($jsonInformation['stations'] as $item) { //foreach element in $json
@@ -141,10 +143,10 @@ class StationController extends AbstractController
     private function getRechargeStations(ManagerRegistry $doctrine, RechargeStationRepository $rechargeStationRepository): void
     {
         $entityManager = $doctrine->getManager();
-        $urlVehicles = 'https://analisi.transparenciacatalunya.cat/resource/tb2m-m33b.json';
-        $getJsonVehicles = file_get_contents($urlVehicles);
-        $jsonVehicles = json_decode($getJsonVehicles);
-        $jsonVehicles = (array)$jsonVehicles;
+        $urlRechargeStations = 'https://analisi.transparenciacatalunya.cat/resource/tb2m-m33b.json';
+        $getJsonRechargeStations = file_get_contents($urlRechargeStations);
+        $jsonRechargeStation = json_decode($getJsonRechargeStations);
+        $jsonRechargeStation = (array)$jsonRechargeStation;
 
         $adapter["latitud"] = ["funcName" => "setLatitude", "propertyName" => "latitude"];
         $adapter["longitud"] = ["funcName" => "setLongitude", "propertyName" => "longitude"];
@@ -156,15 +158,14 @@ class StationController extends AbstractController
         $adapter["nplaces_estaci"] = ["funcName" => "setSlots", "propertyName" => "slots"];
 
         $rechargeStations = $rechargeStationRepository->findAll();
-
-        if ($rechargeStations === null){
-            foreach ($jsonVehicles as $item) { //foreach element in $json
-                $this->iterationsThroughJson($item, $entityManager);
+        if (empty($rechargeStations)){
+            foreach ($jsonRechargeStation as $item) { //foreach element in $json
+                $this->iterationsThroughJson($item, $entityManager, $adapter);
             }
         }
 
         else{
-            foreach ($jsonVehicles as $item) { //foreach element in $json
+            foreach ($jsonRechargeStation as $item) { //foreach element in $json
                 $latStr = $item->latitud;
                 $lonStr = $item->longitud;
 
@@ -203,7 +204,7 @@ class StationController extends AbstractController
                 }
 
                 else{
-                    $this->iterationsThroughJson($item, $entityManager);
+                    $this->iterationsThroughJson($item, $entityManager, $adapter);
                 }
             }
         }
@@ -212,7 +213,7 @@ class StationController extends AbstractController
     /**
      * @throws Exception
      */
-    private function iterationsThroughJson($item, $entityManager): void
+    private function iterationsThroughJson($item, $entityManager, $adapter): void
     {
         $rechargeStation = new RechargeStation();
         foreach ($item as $attNameRaw => $value) {
