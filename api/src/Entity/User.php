@@ -61,6 +61,9 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\ManyToMany(targetEntity: RechargeStation::class)]
     private Collection $favouriteRechargeStations;
 
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $photo = null;
+
     public function __construct()
     {
         $this->apiTokens = new ArrayCollection();
@@ -261,6 +264,18 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function removeFavouriteRechargeStation(RechargeStation $favouriteRechargeStation): self
     {
         $this->favouriteRechargeStations->removeElement($favouriteRechargeStation);
+
+        return $this;
+    }
+
+    public function getPhoto(): ?string
+    {
+        return $this->photo;
+    }
+
+    public function setPhoto(?string $photo): self
+    {
+        $this->photo = $photo;
 
         return $this;
     }
