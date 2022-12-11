@@ -72,7 +72,7 @@ class MessagesController extends AbstractController
         $user1Id = $user1->getId();
 
         $requestBodyAsJSON = json_decode($request->getContent(), true);
-        $user2Id = $requestBodyAsJSON['reciever'];
+        $user2Id = $requestBodyAsJSON['idReceiver'];
         $user2 = $userRepository->find($user2Id);
 
         $response = new JsonResponse();
