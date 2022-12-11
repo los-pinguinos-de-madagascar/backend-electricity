@@ -49,6 +49,7 @@ class CreateUserController extends AbstractController
         $user->setEmail($email);
         $user->setPassword($hashedPassword);
         $user->setUsername($username);
+        $user->setElectryCoins(0);
         $em = $doctrine->getManager();
         $em->persist($user);
         $em->flush($user);

@@ -61,12 +61,25 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\ManyToMany(targetEntity: RechargeStation::class)]
     private Collection $favouriteRechargeStations;
 
+    #[ORM\Column]
+    private ?int $electryCoins = null;
+
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $skinCursor = null;
+
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $skinPalette = null;
+
+    #[ORM\ManyToMany(targetEntity: Award::class, inversedBy: 'users')]
+    private Collection $awards;
+
     public function __construct()
     {
         $this->apiTokens = new ArrayCollection();
         $this->favouriteLocations = new ArrayCollection();
         $this->favouriteBicingStations = new ArrayCollection();
         $this->favouriteRechargeStations = new ArrayCollection();
+        $this->awards = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -261,6 +274,66 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function removeFavouriteRechargeStation(RechargeStation $favouriteRechargeStation): self
     {
         $this->favouriteRechargeStations->removeElement($favouriteRechargeStation);
+
+        return $this;
+    }
+
+    public function getElectryCoins(): ?int
+    {
+        return $this->electryCoins;
+    }
+
+    public function setElectryCoins(int $electryCoins): self
+    {
+        $this->electryCoins = $electryCoins;
+
+        return $this;
+    }
+
+    public function getSkinCursor(): ?string
+    {
+        return $this->skinCursor;
+    }
+
+    public function setSkinCursor(?string $skinCursor): self
+    {
+        $this->skinCursor = $skinCursor;
+
+        return $this;
+    }
+
+    public function getSkinPalette(): ?string
+    {
+        return $this->skinPalette;
+    }
+
+    public function setSkinPalette(?string $skinPalette): self
+    {
+        $this->skinPalette = $skinPalette;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, Award>
+     */
+    public function getAwards(): Collection
+    {
+        return $this->awards;
+    }
+
+    public function addAward(Award $award): self
+    {
+        if (!$this->awards->contains($award)) {
+            $this->awards->add($award);
+        }
+
+        return $this;
+    }
+
+    public function removeAward(Award $award): self
+    {
+        $this->awards->removeElement($award);
 
         return $this;
     }
