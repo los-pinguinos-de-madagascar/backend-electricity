@@ -3,6 +3,7 @@
 namespace App\Controller;
 
 use App\Entity\Location;
+use App\Repository\AwardRepository;
 use App\Repository\BicingStationRepository;
 use App\Repository\LocationRepository;
 use App\Repository\RechargeStationRepository;
@@ -154,6 +155,45 @@ class UserController extends AbstractController
 
         $response->setContent($serializer->serialize($user,'json'));
         $response->setStatusCode(201);
+        return $response;
+    }
+
+    #[Route('/users/{id}/awards/{idAward}', name: 'add_user_award', methods: ["POST"])]
+    public function addUserAward(ManagerRegistry $doctrine, SerializerInterface $serializer, AwardRepository $awardRepository , int $idAward): JsonResponse
+    {
+        $user = $this->getUser();
+        $entityManager = $doctrine->getManager();
+        $response = new JsonResponse();
+
+        $award = $awardRepository->find($idAward);
+
+        if ($award === null){
+            $returnMessage = json_encode(["message"=>"Award $idAward does not exist"]);
+            $response->setContent($returnMessage);
+            $response->setStatusCode(404);
+            return $response;
+        }
+
+        $userCoins = $user->getElectryCoins();
+        $awardPrice = $award->getPrice();
+
+        if (($userCoins !== null) && ($awardPrice <= $userCoins)){
+            $user->setElectryCoins($userCoins - $awardPrice);
+            $user->addAward($award);
+
+            $entityManager->persist($user);
+            $entityManager->flush();
+
+            $response->headers->set('Content-Type', 'application/json');
+            $response->setContent($serializer->serialize($user,'json'));
+            $response->setStatusCode(201);
+        }
+
+        else{
+            $returnMessage = json_encode(["message"=>"The user does not have enough electryCoins to buy the award $idAward"]);
+            $response->setContent($returnMessage);
+            $response->setStatusCode(200);
+        }
         return $response;
     }
 

@@ -61,7 +61,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\ManyToMany(targetEntity: RechargeStation::class)]
     private Collection $favouriteRechargeStations;
 
-    #[ORM\Column]
+    #[ORM\Column( nullable: true)]
     private ?int $electryCoins = null;
 
     #[ORM\Column(length: 255, nullable: true)]
