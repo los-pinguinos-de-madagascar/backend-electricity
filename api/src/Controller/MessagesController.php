@@ -97,6 +97,34 @@ class MessagesController extends AbstractController
         $response->setContent($serializer->serialize($responseArray,'json'));
         return $response;
 
+    }
+
+    #[Route('/users/{id}/conversations', name: 'get_conversations', methods: ["GET"])]
+    public function getAllConversations(Request $request, MessageRepository $messageRepository, UserRepository $userRepository, SerializerInterface $serializer): JsonResponse
+    {
+        $user1 = $this->getUser();
+        $user1Id = $user1->getId();
+
+        $response = new JsonResponse();
+        $response->headers->set('Content-Type', 'application/json');
+
+
+        $rebuts = $messageRepository->findBy(array('receiver' => $user1Id));
+        $enviats = $messageRepository->findBy(array('sender' => $user1Id));
+        $result = array();
+
+        foreach ($rebuts as $helper1) {
+            if ((!in_array($helper1->getSender(),$result))) $result[] = $helper1->getSender();
+        }
+        foreach ($enviats as $helper2) {
+            if ((!in_array($helper2->getReceiver(),$result))) $result[] = $helper2->getReceiver();
+        }
+
+        $response->setStatusCode(201);
+        $responseArray['message'] = "Conversations of $user1Id";
+        $responseArray['userWithConversation'] = $result;
+        $response->setContent($serializer->serialize($responseArray,'json'));
+        return $response;
 
     }
 }
