@@ -133,7 +133,7 @@ class UserController extends AbstractController
         return $response;
     }
 
-    #[Route('/users/{id}/rechargeStation/{idRechargeStation}', name: 'delete_favourite_location', methods: ["DELETE"])]
+    #[Route('/users/{id}/rechargeStation/{idRechargeStation}', name: 'delete_favourite_rechargeStation', methods: ["DELETE"])]
     public function deleteFavouriteRechargeStation(ManagerRegistry $doctrine, SerializerInterface $serializer, RechargeStationRepository $rechargeStationRepository, int $idRechargeStation): JsonResponse
     {
         $user = $this->getUser();
