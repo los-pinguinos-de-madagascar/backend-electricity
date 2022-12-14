@@ -61,8 +61,16 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\ManyToMany(targetEntity: RechargeStation::class)]
     private Collection $favouriteRechargeStations;
 
+
+    #[ORM\OneToMany(mappedBy: 'sender', targetEntity: Message::class, orphanRemoval: true)]
+    private Collection $messagesSender;
+
+    #[ORM\OneToMany(mappedBy: 'receiver', targetEntity: Message::class, orphanRemoval: true)]
+    private Collection $messagesReceiver;
+
     #[ORM\OneToMany(mappedBy: 'userOwner', targetEntity: Comment::class, orphanRemoval: true)]
     private Collection $comments;
+
 
     public function __construct()
     {
@@ -70,6 +78,8 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         $this->favouriteLocations = new ArrayCollection();
         $this->favouriteBicingStations = new ArrayCollection();
         $this->favouriteRechargeStations = new ArrayCollection();
+        $this->messagesSender = new ArrayCollection();
+        $this->messagesReceiver = new ArrayCollection();
         $this->comments = new ArrayCollection();
     }
 
@@ -270,6 +280,18 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     }
 
     /**
+     * @return Collection<int, Message>
+     */
+    public function getMessagesSender(): Collection
+    {
+        return $this->messagesSender;
+    }
+
+    public function addMessagesSender(Message $messagesSender): self
+    {
+        if (!$this->messagesSender->contains($messagesSender)) {
+            $this->messagesSender->add($messagesSender);
+            $messagesSender->setSender($this);
      * @return Collection<int, Comment>
      */
     public function getComments(): Collection
@@ -287,6 +309,42 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         return $this;
     }
 
+    public function removeMessagesSender(Message $messagesSender): self
+    {
+        if ($this->messagesSender->removeElement($messagesSender)) {
+            // set the owning side to null (unless already changed)
+            if ($messagesSender->getSender() === $this) {
+                $messagesSender->setSender(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, Message>
+     */
+    public function getMessagesReceiver(): Collection
+    {
+        return $this->messagesReceiver;
+    }
+
+    public function addMessagesReceiver(Message $messagesReceiver): self
+    {
+        if (!$this->messagesReceiver->contains($messagesReceiver)) {
+            $this->messagesReceiver->add($messagesReceiver);
+            $messagesReceiver->setReceiver($this);
+        }
+
+        return $this;
+    }
+
+    public function removeMessagesReceiver(Message $messagesReceiver): self
+    {
+        if ($this->messagesReceiver->removeElement($messagesReceiver)) {
+            // set the owning side to null (unless already changed)
+            if ($messagesReceiver->getReceiver() === $this) {
+                $messagesReceiver->setReceiver(null);
     public function removeComment(Comment $comment): self
     {
         if ($this->comments->removeElement($comment)) {
