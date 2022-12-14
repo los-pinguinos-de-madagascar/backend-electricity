@@ -65,15 +65,13 @@ class MessagesController extends AbstractController
 
     }
 
-    #[Route('/users/{id}/messages', name: 'get_messages', methods: ["GET"])]
-    public function getConversation(Request $request, MessageRepository $messageRepository, UserRepository $userRepository, SerializerInterface $serializer): JsonResponse
+    #[Route('/users/{id1}/messages/users/{id2}', name: 'get_messages', methods: ["GET"])]
+    public function getConversation(Request $request, MessageRepository $messageRepository, UserRepository $userRepository, SerializerInterface $serializer, int $id2): JsonResponse
     {
         $user1 = $this->getUser();
         $user1Id = $user1->getId();
 
-        $requestBodyAsJSON = json_decode($request->getContent(), true);
-        $user2Id = $requestBodyAsJSON['idReceiver'];
-        $user2 = $userRepository->find($user2Id);
+        $user2 = $userRepository->find($id2);
 
         $response = new JsonResponse();
         $response->headers->set('Content-Type', 'application/json');
@@ -86,12 +84,12 @@ class MessagesController extends AbstractController
         }
 
 
-        $rebuts = $messageRepository->findBy(array('receiver' => $user1Id,'sender' => $user2Id));
-        $enviats = $messageRepository->findBy(array('receiver' => $user2Id,'sender' => $user1Id));
+        $rebuts = $messageRepository->findBy(array('receiver' => $user1Id,'sender' => $id2));
+        $enviats = $messageRepository->findBy(array('receiver' => $id2,'sender' => $user1Id));
 
 
         $response->setStatusCode(201);
-        $responseArray['message'] = "Chat from $user1Id to $user2Id";
+        $responseArray['message'] = "Chat from $user1Id to $id2";
         $responseArray['enviats'] = $enviats;
         $responseArray['rebuts'] = $rebuts;
         $response->setContent($serializer->serialize($responseArray,'json'));
