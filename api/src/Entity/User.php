@@ -293,6 +293,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
             $this->messagesSender->add($messagesSender);
             $messagesSender->setSender($this);
         }
+
         return $this;
     }
      /* @return Collection<int, Comment>
@@ -350,8 +351,10 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
                 $messagesReceiver->setReceiver(null);
             }
         }
+
         return $this;
     }
+
     public function removeComment(Comment $comment): self
     {
         if ($this->comments->removeElement($comment)) {
