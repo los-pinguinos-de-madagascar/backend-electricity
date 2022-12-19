@@ -4,6 +4,7 @@ namespace App\Entity;
 
 use ApiPlatform\Metadata\ApiResource;
 use App\Repository\StationRepository;
+use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\MappedSuperclass(repositoryClass: StationRepository::class)]
@@ -25,6 +26,12 @@ class Station
 
     #[ORM\Column(length: 255)]
     private ?string $adress = " ";
+
+    #[ORM\Column(nullable: true)]
+    private ?int $polution = null;
+
+    #[ORM\Column(type: Types::ARRAY, nullable: true)]
+    private array $dangerousGases = [];
 
     public function getId(): ?int
     {
@@ -74,6 +81,30 @@ class Station
     public function setAddress(string $adress): self
     {
         $this->adress = $adress;
+
+        return $this;
+    }
+
+    public function getPolution(): ?int
+    {
+        return $this->polution;
+    }
+
+    public function setPolution(?int $polution): self
+    {
+        $this->polution = $polution;
+
+        return $this;
+    }
+
+    public function getDangerousGases(): array
+    {
+        return $this->dangerousGases;
+    }
+
+    public function setDangerousGases(?array $dangerousGases): self
+    {
+        $this->dangerousGases = $dangerousGases;
 
         return $this;
     }

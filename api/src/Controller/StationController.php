@@ -5,12 +5,14 @@ namespace App\Controller;
 use App\Entity\BicingStation;
 use App\Entity\RechargeStation;
 use App\Entity\Station;
+use App\Helpers\RouteAlgorithm;
 use App\Repository\BicingStationRepository;
 use App\Repository\RechargeStationRepository;
 use Doctrine\Persistence\ManagerRegistry;
 use EasyRdf\Exception;
 use PhpParser\Node\Expr\Empty_;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 
@@ -245,6 +247,162 @@ class StationController extends AbstractController
             $entityManager->persist($rechargeStation);
             $entityManager->flush();
         }
+    }
+
+    #[Route('/potusInformation', name: 'refresh_potusInfo', methods: ["PUT"])]
+    public function updatePotusInfo(ManagerRegistry $doctrine, BicingStationRepository $bicingStationRepository, RechargeStationRepository $rechargeStationRepository): JsonResponse
+    {
+        $response = new JsonResponse();
+
+        $bicingStations = $bicingStationRepository->findAll();
+        $rechargeStations = $rechargeStationRepository->findAll();
+
+        if (!empty($bicingStations)){
+            foreach ($bicingStations as $station){
+
+                $lat = $station->getLatitude();
+                $lon = $station->getLongitude();
+
+                $latitudestr = strval($lat);
+                $lengthstr = strval($lon);
+                $boolpolution = false;
+                $boolgases = false;
+
+                $potusInformation = $this->getPotusInformation($latitudestr,$lengthstr);
+
+                foreach($potusInformation as $key=>$value){
+                    if ($key === 0){
+                        $polution = $value;
+                        $boolpolution = true;
+                    }
+
+                    else if ($key === 1){
+                        $dangerousGases = $value;
+                        $boolgases = true;
+                    }
+                }
+                if ($boolpolution) $station->setPolution($polution);
+                if ($boolgases) $station->setDangerousGases($dangerousGases);
+            }
+        }
+
+        else {
+            $returnMessage = json_encode(["message"=>"The DB does not have stations"]);
+            $response->setContent($returnMessage);
+            $response->setStatusCode(503);
+            return $response;
+        }
+
+        if (!empty($rechargeStations)){
+            foreach ($rechargeStations as $station){
+
+                $lat = $station->getLatitude();
+                $lon = $station->getLongitude();
+
+                $latitudestr = strval($lat);
+                $lengthstr = strval($lon);
+                $boolpolution = false;
+                $boolgases = false;
+
+                $potusInformation = $this->getPotusInformation($latitudestr,$lengthstr);
+
+                foreach($potusInformation as $key=>$value){
+                    if ($key === 0){
+                        $polution = $value;
+                        $boolpolution = true;
+                    }
+
+                    else if ($key === 1){
+                        $dangerousGases = $value;
+                        $boolgases = true;
+                    }
+                }
+                if ($boolpolution) $station->setPolution($polution);
+                if ($boolgases) $station->setDangerousGases($dangerousGases);
+            }
+        }
+
+        else {
+            $returnMessage = json_encode(["message"=>"The DB does not have stations"]);
+            $response->setContent($returnMessage);
+            $response->setStatusCode(503);
+            return $response;
+        }
+
+        $entityManager = $doctrine->getManager();
+        $entityManager->flush();
+
+        $returnMessage = json_encode(["message"=>"The DB has been updated"]);
+        $response->setContent($returnMessage);
+        $response->setStatusCode(200);
+
+        return $response;
+    }
+
+    private function getPotusInformation($latitude, $length)
+    {
+        // Potus Information
+        $url = 'https://potusback-production-e83b.up.railway.app/api/external/airquality/region';
+        $data = array(
+            'latitude' => $latitude,
+            'length' => $length,
+        );
+
+        //var_dump($data);
+        $final = $url . "?" . http_build_query($data);
+        $options = array(
+            'http' => array(
+                'method' => 'GET',
+                'header'=>"Authorization: token VkftUDvhs5wi6pZMTTkhp4qyeeNeXvxKGmBDoCTCCPDzdg15Z6aKDRHBJJu1f92Vt5EFYvTLIZdPsQIsWQfQftbwcuvMm4XG9zrRNXwvERLIwkFAoFrvjp0979Fenz325Z2iZAv3RltA1Lzsrf0bf6nvX1aV4TkTmc6kkkrHa7ZYHrTN1ZL1Qxn6WGummRV67r1CtsJLqcZ0uBRVTkvNtpMMyHRgyM58l6IeXnJ5Q7hJMaOYygZlGB6Z\r\n"
+            )
+        );
+
+        $context = stream_context_create($options);
+        $file = file_get_contents($final, false, $context);
+        $jsonInformation = json_decode($file);
+
+        //var_dump($jsonInformation);
+        $gases = $jsonInformation->registry;
+
+        $levelDanger = 0;
+        $lowDanger = false;
+        $moderateDanger = false;
+        $dangerousGases = array();
+
+        foreach ($gases as $gas){
+            if ($gas->dangerLevel === "Low"){
+                $lowDanger = true;
+
+                if ($gas->value !== null){
+                    $gasInfo[$gas->name] = ["dangerLevel" => "Low" , "value" => $gas->value];
+                }
+                else{
+                    $gasInfo[$gas->name] = ["dangerLevel" => $gas->dangerLevel];
+                }
+
+                $dangerousGases[] = $gasInfo[$gas->name];
+            }
+            else if ($gas->dangerLevel === "Moderate"){
+                $moderateDanger = true;
+
+                if ($gas->value !== null){
+                    $gasInfo[$gas->name] = ["dangerLevel" => "Moderate" , "value" => $gas->value];
+                }
+                else {
+                    $gasInfo[$gas->name] = ["dangerLevel" => $gas->dangerLevel];
+                }
+
+                $dangerousGases[] = $gasInfo[$gas->name];
+            }
+        }
+
+        if ($moderateDanger) $levelDanger = 2;
+        else if ($lowDanger) $levelDanger = 1;
+
+        $potusInformation[] = $levelDanger;
+        $potusInformation[] = $dangerousGases;
+
+        return $potusInformation;
     }
 }
 
