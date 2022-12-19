@@ -292,7 +292,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         if (!$this->messagesSender->contains($messagesSender)) {
             $this->messagesSender->add($messagesSender);
             $messagesSender->setSender($this);
-     * @return Collection<int, Comment>
+     /* @return Collection<int, Comment>
      */
     public function getComments(): Collection
     {
