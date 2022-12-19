@@ -292,7 +292,10 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         if (!$this->messagesSender->contains($messagesSender)) {
             $this->messagesSender->add($messagesSender);
             $messagesSender->setSender($this);
-     * @return Collection<int, Comment>
+        }
+        return $this;
+    }
+     /* @return Collection<int, Comment>
      */
     public function getComments(): Collection
     {
@@ -345,6 +348,10 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
             // set the owning side to null (unless already changed)
             if ($messagesReceiver->getReceiver() === $this) {
                 $messagesReceiver->setReceiver(null);
+            }
+        }
+        return $this;
+    }
     public function removeComment(Comment $comment): self
     {
         if ($this->comments->removeElement($comment)) {
