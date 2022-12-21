@@ -119,6 +119,8 @@
       <excludeFolder url="file://$MODULE_DIR$/api/vendor/webmozart/assert" />
       <excludeFolder url="file://$MODULE_DIR$/api/vendor/sweetrdf/easyrdf" />
       <excludeFolder url="file://$MODULE_DIR$/api/vendor/ralouphie/getallheaders" />
+      <excludeFolder url="file://$MODULE_DIR$/api/vendor/lexik/jwt-authentication-bundle" />
+      <excludeFolder url="file://$MODULE_DIR$/api/vendor/namshi/jose" />
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />

@@ -156,5 +156,17 @@ class UserController extends AbstractController
         $response->setStatusCode(201);
         return $response;
     }
+    #[Route('/profile', name: 'api_login')]
+    public function showProfile(ManagerRegistry $doctrine, SerializerInterface $serializer): JsonResponse
+    {
+        $user = $this->getUser();
 
+        $response = new JsonResponse();
+        $response->headers->set('Content-Type', 'application/json');
+
+        $response->setContent($serializer->serialize($user,'json'));
+        $response->setStatusCode(201);
+
+        return $response;
+    }
 }
