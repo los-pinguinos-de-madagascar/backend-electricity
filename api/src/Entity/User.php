@@ -45,9 +45,6 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $fullname = null;
 
-    #[ORM\OneToMany(mappedBy: 'tokenOwner', targetEntity: ApiToken::class, orphanRemoval: true)]
-    private Collection $apiTokens;
-
     #[ORM\Column]
     #[Assert\NotNull]
     private array $roles = ["ROLE_USER"];
@@ -63,7 +60,6 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 
     public function __construct()
     {
-        $this->apiTokens = new ArrayCollection();
         $this->favouriteLocations = new ArrayCollection();
         $this->favouriteBicingStations = new ArrayCollection();
         $this->favouriteRechargeStations = new ArrayCollection();
@@ -138,37 +134,6 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         // If you store any temporary, sensitive data on the user, clear it here
         // $this->plainPassword = null;
     }
-
-    /**
-     * @return Collection<int, ApiToken>
-     */
-    public function getApiTokens(): Collection
-    {
-        return $this->apiTokens;
-    }
-
-    public function addApiToken(ApiToken $apiToken): self
-    {
-        if (!$this->apiTokens->contains($apiToken)) {
-            $this->apiTokens->add($apiToken);
-            $apiToken->setTokenOwner($this);
-        }
-
-        return $this;
-    }
-
-    public function removeApiToken(ApiToken $apiToken): self
-    {
-        if ($this->apiTokens->removeElement($apiToken)) {
-            // set the owning side to null (unless already changed)
-            if ($apiToken->getTokenOwner() === $this) {
-                $apiToken->setTokenOwner(null);
-            }
-        }
-
-        return $this;
-    }
-
     public function getUsername(): ?string
     {
         return $this->username;
