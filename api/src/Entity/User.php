@@ -13,7 +13,10 @@ use Symfony\Component\Security\Core\User\UserInterface;
 use Symfony\Component\Validator\Constraints as Assert;
 use Symfony\Component\Serializer\Annotation\Groups;
 
-#[ApiResource]
+#[ApiResource(
+    normalizationContext: ['groups' => ['read']],
+    denormalizationContext: ['groups' => ['write']],
+)]
 #[ORM\Entity(repositoryClass: UserRepository::class)]
 #[ORM\Table(name: '`user`')]
     /**
@@ -29,12 +32,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column(length: 180, unique: true, nullable: false)]
     #[Assert\NotBlank]
     #[Assert\Email]
-    #[ApiProperty(
-        openapiContext: [
-            'type' => 'string',
-            'exmample' => 'electri@gmail.com'
-        ]
-    )]
+    #[Groups('read')]
     private ?string $email = null;
 
     #[ORM\Column(nullable: false)]
@@ -42,9 +40,11 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     private ?string $password = null;
 
     #[ORM\Column(length: 255)]
+    #[Groups('read')]
     private ?string $username = null;
 
     #[ORM\Column(length: 255, nullable: true)]
+    #[Groups('read')]
     private ?string $fullname = null;
 
     #[ORM\Column]
@@ -52,22 +52,28 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     private array $roles = ["ROLE_USER"];
 
     #[ORM\ManyToMany(targetEntity: Location::class, cascade:["persist"])]
+    #[Groups('read')]
     private Collection $favouriteLocations;
 
     #[ORM\ManyToMany(targetEntity: BicingStation::class)]
+    #[Groups('read')]
     private Collection $favouriteBicingStations;
 
     #[ORM\ManyToMany(targetEntity: RechargeStation::class)]
+    #[Groups('read')]
     private Collection $favouriteRechargeStations;
 
 
     #[ORM\OneToMany(mappedBy: 'sender', targetEntity: Message::class, orphanRemoval: true)]
+    #[Groups('read')]
     private Collection $messagesSender;
 
     #[ORM\OneToMany(mappedBy: 'receiver', targetEntity: Message::class, orphanRemoval: true)]
+    #[Groups('read')]
     private Collection $messagesReceiver;
 
     #[ORM\OneToMany(mappedBy: 'userOwner', targetEntity: Comment::class, orphanRemoval: true)]
+    #[Groups('read')]
     private Collection $comments;
 
 
