@@ -38,5 +38,5 @@ security:
         - { path: ^/docs, roles: PUBLIC_ACCESS } # Allows accessing the Swagger UI docs
         - { path: ^/login, roles: PUBLIC_ACCESS }
         - { path: ^/register, roles: PUBLIC_ACCESS }
-        - { path: ^/users, roles: ROLE_ADMIN }
+        - { path: ^/users, roles: ROLE_ADMIN, methods: ['POST', 'PUT', 'PATCH'] }
         - { path: ^/, roles: IS_AUTHENTICATED_FULLY }
