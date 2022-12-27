@@ -156,7 +156,7 @@ class UserController extends AbstractController
         $response->setStatusCode(201);
         return $response;
     }
-    #[Route('/profile', name: 'api_login')]
+    #[Route('/profile', name: 'api_login', methods: ['GET'])]
     public function showProfile(ManagerRegistry $doctrine, SerializerInterface $serializer): JsonResponse
     {
         $user = $this->getUser();
@@ -168,5 +168,19 @@ class UserController extends AbstractController
         $response->setStatusCode(201);
 
         return $response;
+    }
+
+    #[Route('/users/{id}/password', name: 'change_password', methods: ['PUT'])]
+    public function changePassword(Request $request): JsonResponse{
+
+        $token = $request->query->get("token");
+
+        dd($token);
+        $response = new JsonResponse();
+        $response->headers->set('Content-Type', 'application/json');
+        $response->setStatusCode(200);
+
+        return $response;
+
     }
 }
