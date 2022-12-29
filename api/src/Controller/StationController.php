@@ -249,49 +249,12 @@ class StationController extends AbstractController
         }
     }
 
-    #[Route('/potusInformation', name: 'refresh_potusInfo', methods: ["PUT"])]
-    public function updatePotusInfo(ManagerRegistry $doctrine, BicingStationRepository $bicingStationRepository, RechargeStationRepository $rechargeStationRepository): JsonResponse
+    #[Route('/potusInformationRecharge', name: 'refresh_potusInfo_recharge', methods: ["PUT"])]
+    public function updatePotusInfoRecharge(ManagerRegistry $doctrine, BicingStationRepository $bicingStationRepository, RechargeStationRepository $rechargeStationRepository): JsonResponse
     {
         $response = new JsonResponse();
 
-        $bicingStations = $bicingStationRepository->findAll();
         $rechargeStations = $rechargeStationRepository->findAll();
-
-        if (!empty($bicingStations)){
-            foreach ($bicingStations as $station){
-
-                $lat = $station->getLatitude();
-                $lon = $station->getLongitude();
-
-                $latitudestr = strval($lat);
-                $lengthstr = strval($lon);
-                $boolpolution = false;
-                $boolgases = false;
-
-                $potusInformation = $this->getPotusInformation($latitudestr,$lengthstr);
-
-                foreach($potusInformation as $key=>$value){
-                    if ($key === 0){
-                        $polution = $value;
-                        $boolpolution = true;
-                    }
-
-                    else if ($key === 1){
-                        $dangerousGases = $value;
-                        $boolgases = true;
-                    }
-                }
-                if ($boolpolution) $station->setPolution($polution);
-                if ($boolgases) $station->setDangerousGases($dangerousGases);
-            }
-        }
-
-        else {
-            $returnMessage = json_encode(["message"=>"The DB does not have stations"]);
-            $response->setContent($returnMessage);
-            $response->setStatusCode(503);
-            return $response;
-        }
 
         if (!empty($rechargeStations)){
             foreach ($rechargeStations as $station){
@@ -323,7 +286,7 @@ class StationController extends AbstractController
         }
 
         else {
-            $returnMessage = json_encode(["message"=>"The DB does not have stations"]);
+            $returnMessage = json_encode(["message"=>"The DB does not have recharge stations"]);
             $response->setContent($returnMessage);
             $response->setStatusCode(503);
             return $response;
@@ -339,10 +302,62 @@ class StationController extends AbstractController
         return $response;
     }
 
+    #[Route('/potusInformationBicing', name: 'refresh_potusInfo_bicing', methods: ["PUT"])]
+    public function updatePotusInfoBicing(ManagerRegistry $doctrine, BicingStationRepository $bicingStationRepository, RechargeStationRepository $rechargeStationRepository): JsonResponse
+    {
+        $response = new JsonResponse();
+
+        $bicingStations = $bicingStationRepository->findAll();
+
+        if (!empty($bicingStations)){
+            foreach ($bicingStations as $station){
+
+                $lat = $station->getLatitude();
+                $lon = $station->getLongitude();
+
+                $latitudestr = strval($lat);
+                $lengthstr = strval($lon);
+                $boolpolution = false;
+                $boolgases = false;
+
+                $potusInformation = $this->getPotusInformation($latitudestr,$lengthstr);
+
+                foreach($potusInformation as $key=>$value){
+                    if ($key === 0){
+                        $polution = $value;
+                        $boolpolution = true;
+                    }
+
+                    else if ($key === 1){
+                        $dangerousGases = $value;
+                        $boolgases = true;
+                    }
+                }
+                if ($boolpolution) $station->setPolution($polution);
+                if ($boolgases) $station->setDangerousGases($dangerousGases);
+            }
+        }
+
+        else {
+            $returnMessage = json_encode(["message"=>"The DB does not have bicing stations"]);
+            $response->setContent($returnMessage);
+            $response->setStatusCode(503);
+            return $response;
+        }
+
+        $entityManager = $doctrine->getManager();
+        $entityManager->flush();
+
+        $returnMessage = json_encode(["message"=>"The DB has been updated"]);
+        $response->setContent($returnMessage);
+        $response->setStatusCode(200);
+
+        return $response;
+    }
     private function getPotusInformation($latitude, $length)
     {
         // Potus Information
-        $url = 'https://potusback-production-e83b.up.railway.app/api/external/airquality/region';
+        $url = 'https://potusback-production-b295.up.railway.app/api/external/airquality/region';
         $data = array(
             'latitude' => $latitude,
             'length' => $length,
@@ -353,7 +368,7 @@ class StationController extends AbstractController
         $options = array(
             'http' => array(
                 'method' => 'GET',
-                'header'=>"Authorization: token VkftUDvhs5wi6pZMTTkhp4qyeeNeXvxKGmBDoCTCCPDzdg15Z6aKDRHBJJu1f92Vt5EFYvTLIZdPsQIsWQfQftbwcuvMm4XG9zrRNXwvERLIwkFAoFrvjp0979Fenz325Z2iZAv3RltA1Lzsrf0bf6nvX1aV4TkTmc6kkkrHa7ZYHrTN1ZL1Qxn6WGummRV67r1CtsJLqcZ0uBRVTkvNtpMMyHRgyM58l6IeXnJ5Q7hJMaOYygZlGB6Z\r\n"
+                'header'=>"Authorization: token BD2GNpAHy0pQbpXvGyLoaSEYxSghpMKRBx79X3K4Q7DUQNJloggzmi3yGqiEVP084eY1yXN8a073dEdTb5UNUusL5thCqflqCJJRHYicf2bjVaKd7vI9EpQTEpxJ2HmWxXlidTiYkqK1icwVw1jG4LxuV4d359rqY149ArkOb2om1PVVyrI1qdt28o3Ps3hfIZp8L7rzNoLT10kL2cEDGo4HLawTfnmEOoJmravYrGCuSUcnrhP4DWZ9\r\n"
             )
         );
 
