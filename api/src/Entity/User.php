@@ -11,7 +11,12 @@ use PhpParser\Node\Expr\Array_;
 use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
 use Symfony\Component\Validator\Constraints as Assert;
-#[ApiResource]
+use Symfony\Component\Serializer\Annotation\Groups;
+
+#[ApiResource(
+    normalizationContext: ['groups' => ['read']],
+    denormalizationContext: ['groups' => ['write']],
+)]
 #[ORM\Entity(repositoryClass: UserRepository::class)]
 #[ORM\Table(name: '`user`')]
     /**
@@ -22,17 +27,13 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
+    #[Groups('read')]
     private ?int $id = null;
 
     #[ORM\Column(length: 180, unique: true, nullable: false)]
     #[Assert\NotBlank]
     #[Assert\Email]
-    #[ApiProperty(
-        openapiContext: [
-            'type' => 'string',
-            'exmample' => 'electri@gmail.com'
-        ]
-    )]
+    #[Groups('read')]
     private ?string $email = null;
 
     #[ORM\Column(nullable: false)]
@@ -40,33 +41,51 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     private ?string $password = null;
 
     #[ORM\Column(length: 255)]
+    #[Groups('read')]
     private ?string $username = null;
 
     #[ORM\Column(length: 255, nullable: true)]
+    #[Groups('read')]
     private ?string $fullname = null;
-
-    #[ORM\OneToMany(mappedBy: 'tokenOwner', targetEntity: ApiToken::class, orphanRemoval: true)]
-    private Collection $apiTokens;
 
     #[ORM\Column]
     #[Assert\NotNull]
     private array $roles = ["ROLE_USER"];
 
     #[ORM\ManyToMany(targetEntity: Location::class, cascade:["persist"])]
+    #[Groups('read')]
     private Collection $favouriteLocations;
 
     #[ORM\ManyToMany(targetEntity: BicingStation::class)]
+    #[Groups('read')]
     private Collection $favouriteBicingStations;
 
     #[ORM\ManyToMany(targetEntity: RechargeStation::class)]
+    #[Groups('read')]
     private Collection $favouriteRechargeStations;
+
+
+    #[ORM\OneToMany(mappedBy: 'sender', targetEntity: Message::class, orphanRemoval: true)]
+    #[Groups('read')]
+    private Collection $messagesSender;
+
+    #[ORM\OneToMany(mappedBy: 'receiver', targetEntity: Message::class, orphanRemoval: true)]
+    #[Groups('read')]
+    private Collection $messagesReceiver;
+
+    #[ORM\OneToMany(mappedBy: 'userOwner', targetEntity: Comment::class, orphanRemoval: true)]
+    #[Groups('read')]
+    private Collection $comments;
+
 
     public function __construct()
     {
-        $this->apiTokens = new ArrayCollection();
         $this->favouriteLocations = new ArrayCollection();
         $this->favouriteBicingStations = new ArrayCollection();
         $this->favouriteRechargeStations = new ArrayCollection();
+        $this->messagesSender = new ArrayCollection();
+        $this->messagesReceiver = new ArrayCollection();
+        $this->comments = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -138,37 +157,6 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         // If you store any temporary, sensitive data on the user, clear it here
         // $this->plainPassword = null;
     }
-
-    /**
-     * @return Collection<int, ApiToken>
-     */
-    public function getApiTokens(): Collection
-    {
-        return $this->apiTokens;
-    }
-
-    public function addApiToken(ApiToken $apiToken): self
-    {
-        if (!$this->apiTokens->contains($apiToken)) {
-            $this->apiTokens->add($apiToken);
-            $apiToken->setTokenOwner($this);
-        }
-
-        return $this;
-    }
-
-    public function removeApiToken(ApiToken $apiToken): self
-    {
-        if ($this->apiTokens->removeElement($apiToken)) {
-            // set the owning side to null (unless already changed)
-            if ($apiToken->getTokenOwner() === $this) {
-                $apiToken->setTokenOwner(null);
-            }
-        }
-
-        return $this;
-    }
-
     public function getUsername(): ?string
     {
         return $this->username;
@@ -261,6 +249,94 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function removeFavouriteRechargeStation(RechargeStation $favouriteRechargeStation): self
     {
         $this->favouriteRechargeStations->removeElement($favouriteRechargeStation);
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, Message>
+     */
+    public function getMessagesSender(): Collection
+    {
+        return $this->messagesSender;
+    }
+
+    public function addMessagesSender(Message $messagesSender): self
+    {
+        if (!$this->messagesSender->contains($messagesSender)) {
+            $this->messagesSender->add($messagesSender);
+            $messagesSender->setSender($this);
+        }
+
+        return $this;
+    }
+     /* @return Collection<int, Comment>
+     */
+    public function getComments(): Collection
+    {
+        return $this->comments;
+    }
+
+    public function addComment(Comment $comment): self
+    {
+        if (!$this->comments->contains($comment)) {
+            $this->comments->add($comment);
+            $comment->setUserOwner($this);
+        }
+
+        return $this;
+    }
+
+    public function removeMessagesSender(Message $messagesSender): self
+    {
+        if ($this->messagesSender->removeElement($messagesSender)) {
+            // set the owning side to null (unless already changed)
+            if ($messagesSender->getSender() === $this) {
+                $messagesSender->setSender(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, Message>
+     */
+    public function getMessagesReceiver(): Collection
+    {
+        return $this->messagesReceiver;
+    }
+
+    public function addMessagesReceiver(Message $messagesReceiver): self
+    {
+        if (!$this->messagesReceiver->contains($messagesReceiver)) {
+            $this->messagesReceiver->add($messagesReceiver);
+            $messagesReceiver->setReceiver($this);
+        }
+
+        return $this;
+    }
+
+    public function removeMessagesReceiver(Message $messagesReceiver): self
+    {
+        if ($this->messagesReceiver->removeElement($messagesReceiver)) {
+            // set the owning side to null (unless already changed)
+            if ($messagesReceiver->getReceiver() === $this) {
+                $messagesReceiver->setReceiver(null);
+            }
+        }
+
+        return $this;
+    }
+
+    public function removeComment(Comment $comment): self
+    {
+        if ($this->comments->removeElement($comment)) {
+            // set the owning side to null (unless already changed)
+            if ($comment->getUserOwner() === $this) {
+                $comment->setUserOwner(null);
+            }
+        }
 
         return $this;
     }
