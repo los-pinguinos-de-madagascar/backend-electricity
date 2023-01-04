@@ -6,6 +6,7 @@ use App\Entity\Location;
 use App\Repository\BicingStationRepository;
 use App\Repository\LocationRepository;
 use App\Repository\RechargeStationRepository;
+use App\Repository\UserRepository;
 use Doctrine\Persistence\ManagerRegistry;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -183,4 +184,30 @@ class UserController extends AbstractController
         return $response;
 
     }
+
+    #[Route('/email/user', name: 'getUserByEmail', methods: ['GET'])]
+    public function getUserByEmail(Request $request, UserRepository $userRepository, SerializerInterface $serializer): JsonResponse{
+
+        $requestBodyAsJSON = json_decode($request->getContent(), true);
+        $email = $requestBodyAsJSON['email'];
+        $user = $userRepository->findOneBy(['email' => $email]);
+        $response = new JsonResponse();
+        $response->headers->set('Content-Type', 'application/json');
+
+        if (is_null($user)) {
+            $returnMessage = json_encode(["message"=>"User does not exist"]);
+            $response->setContent($returnMessage);
+            $response->setStatusCode(404);
+
+            return $response;
+        }
+
+
+        $response->setContent($serializer->serialize($user,'json'));
+        $response->setStatusCode(201);
+
+        return $response;
+
+    }
+
 }
