@@ -34,7 +34,11 @@ class RechargeStation extends Station
     public function __construct()
     {
         $this->comments = new ArrayCollection();
+        $this->reservations = new ArrayCollection();
     }
+
+    #[ORM\OneToMany(mappedBy: 'rechargeStation', targetEntity: Reservation::class, orphanRemoval: true)]
+    private Collection $reservations;
 
     public function getSpeedType(): ?string
     {
@@ -120,6 +124,36 @@ class RechargeStation extends Station
             // set the owning side to null (unless already changed)
             if ($comment->getRechargeStation() === $this) {
                 $comment->setRechargeStation(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, Reservation>
+     */
+    public function getReservations(): Collection
+    {
+        return $this->reservations;
+    }
+
+    public function addReservation(Reservation $reservation): self
+    {
+        if (!$this->reservations->contains($reservation)) {
+            $this->reservations->add($reservation);
+            $reservation->setRechargeStation($this);
+        }
+
+        return $this;
+    }
+
+    public function removeReservation(Reservation $reservation): self
+    {
+        if ($this->reservations->removeElement($reservation)) {
+            // set the owning side to null (unless already changed)
+            if ($reservation->getRechargeStation() === $this) {
+                $reservation->setRechargeStation(null);
             }
         }
 

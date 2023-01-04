@@ -78,11 +78,15 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     private Collection $comments;
 
 
+    #[ORM\OneToMany(mappedBy: 'userReservation', targetEntity: Reservation::class, orphanRemoval: true)]
+    private Collection $reservations;
+
     public function __construct()
     {
         $this->favouriteLocations = new ArrayCollection();
         $this->favouriteBicingStations = new ArrayCollection();
         $this->favouriteRechargeStations = new ArrayCollection();
+        $this->reservations = new ArrayCollection();
         $this->messagesSender = new ArrayCollection();
         $this->messagesReceiver = new ArrayCollection();
         $this->comments = new ArrayCollection();
@@ -335,6 +339,36 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
             // set the owning side to null (unless already changed)
             if ($comment->getUserOwner() === $this) {
                 $comment->setUserOwner(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, Reservation>
+     */
+    public function getReservations(): Collection
+    {
+        return $this->reservations;
+    }
+
+    public function addReservation(Reservation $reservation): self
+    {
+        if (!$this->reservations->contains($reservation)) {
+            $this->reservations->add($reservation);
+            $reservation->setUserReservation($this);
+        }
+
+        return $this;
+    }
+
+    public function removeReservation(Reservation $reservation): self
+    {
+        if ($this->reservations->removeElement($reservation)) {
+            // set the owning side to null (unless already changed)
+            if ($reservation->getUserReservation() === $this) {
+                $reservation->setUserReservation(null);
             }
         }
 
