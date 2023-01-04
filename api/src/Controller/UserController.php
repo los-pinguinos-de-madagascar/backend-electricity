@@ -72,7 +72,7 @@ class UserController extends AbstractController
         $response = new JsonResponse();
 
         if ($bicingStation === null){
-            $returnMessage = json_encode(["message"=>"Location does not exist"]);
+            $returnMessage = json_encode(["message"=>"Bicing station $idBicingStation does not exist"]);
             $response->setContent($returnMessage);
             $response->setStatusCode(404);
             return $response;
@@ -99,6 +99,13 @@ class UserController extends AbstractController
 
         $rechargeStation = $rechargeStationRepository->find($idRechargeStation);
 
+        if ($rechargeStation === null){
+                $returnMessage = json_encode(["message"=>"Recharge station $idRechargeStation does not exist"]);
+            $response->setContent($returnMessage);
+            $response->setStatusCode(404);
+            return $response;
+        }
+
         $user->addFavouriteRechargeStation($rechargeStation);
 
         $entityManager->persist($user);
@@ -120,7 +127,7 @@ class UserController extends AbstractController
         $bicingStation = $bicingStationRepository->find($idBicingStation);
 
         if ($bicingStation === null){
-            $returnMessage = json_encode(["message"=>"Location does not exist"]);
+            $returnMessage = json_encode(["message"=>"Bicing station $idBicingStation does not exist"]);
             $response->setContent($returnMessage);
             $response->setStatusCode(404);
             return $response;
@@ -144,7 +151,7 @@ class UserController extends AbstractController
         $rechargeStation = $rechargeStationRepository->find($idRechargeStation);
 
         if ($rechargeStation === null){
-            $returnMessage = json_encode(["message"=>"Location does not exist"]);
+            $returnMessage = json_encode(["message"=>"Recharge station $idRechargeStation does not exist"]);
             $response->setContent($returnMessage);
             $response->setStatusCode(404);
             return $response;
