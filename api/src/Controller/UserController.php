@@ -193,11 +193,10 @@ class UserController extends AbstractController
 
     }
 
-    #[Route('/email/user', name: 'getUserByEmail', methods: ['GET'])]
-    public function getUserByEmail(Request $request, UserRepository $userRepository, SerializerInterface $serializer): JsonResponse{
+    #[Route('/{email}/user', name: 'getUserByEmail', methods: ['GET'])]
+    public function getUserByEmail(Request $request, UserRepository $userRepository, SerializerInterface $serializer, String $email): JsonResponse{
 
         $requestBodyAsJSON = json_decode($request->getContent(), true);
-        $email = $requestBodyAsJSON['email'];
         $user = $userRepository->findOneBy(['email' => $email]);
         $response = new JsonResponse();
         $response->headers->set('Content-Type', 'application/json');
@@ -212,7 +211,7 @@ class UserController extends AbstractController
 
 
         $response->setContent($serializer->serialize($user,'json'));
-        $response->setStatusCode(201);
+        $response->setStatusCode(200);
 
         return $response;
 
