@@ -64,11 +64,12 @@ class ReservationController extends AbstractController
         $count = 0;
         $finalReservations = array();
         $slots = $station->getSlots();
+
         foreach ($reservations as $reservation){
             if ($this->sameSpot($reservation, $dataIni, $dataFi)) {
                 $count++;
                 $finalReservations[] = $reservation;
-                if($count === $slots || (($slots === null) && ($count === 1))) {
+                if($count === $slots || (($slots === null) && ($count === 1)) || (($slots === 0) && ($count === 1))) {
                     $responseArray['message'] = "There are not available slots for this date-time to reserve";
                     $responseArray['data'] = $finalReservations;
                     $response->setContent($serializer->serialize($responseArray,'json'));
@@ -95,7 +96,8 @@ class ReservationController extends AbstractController
     {
         $dataIniRes = $reservation->getDataIni();
         $dataFiRes = $reservation->getDataFi();
-        if ((($dataIni <= $dataIniRes) && ($dataIniRes < $dataFi)) || (($dataIni < $dataFiRes) && ($dataFiRes <= $dataFi))) return true;
+        
+        if ((($dataIniRes <= $dataIni) && ($dataIni < $dataFiRes)) || (($dataIniRes < $dataFi) && ($dataFi <= $dataFiRes)) || ($dataIni < $dataIniRes) && ($dataFi > $dataFiRes)) return true;
         return false;
     }
 
