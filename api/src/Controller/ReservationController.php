@@ -96,7 +96,7 @@ class ReservationController extends AbstractController
     {
         $dataIniRes = $reservation->getDataIni();
         $dataFiRes = $reservation->getDataFi();
-        
+
         if ((($dataIniRes <= $dataIni) && ($dataIni < $dataFiRes)) || (($dataIniRes < $dataFi) && ($dataFi <= $dataFiRes)) || ($dataIni < $dataIniRes) && ($dataFi > $dataFiRes)) return true;
         return false;
     }
