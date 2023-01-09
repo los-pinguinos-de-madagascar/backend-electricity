@@ -23,6 +23,8 @@ class StationController extends AbstractController
     #[Route('/station_bicing', name: 'app_station')]
     public function index(ManagerRegistry $doctrine): Response
     {
+        ini_set('max_execution_time', 400);
+
         $this->getRechargeStations($doctrine);
         $this->getBicingStations($doctrine);
         return new Response();
@@ -133,6 +135,7 @@ class StationController extends AbstractController
     #[Route('/potusInformationRecharge', name: 'refresh_potusInfo_recharge', methods: ["PUT"])]
     public function updatePotusInfoRecharge(ManagerRegistry $doctrine, BicingStationRepository $bicingStationRepository, RechargeStationRepository $rechargeStationRepository): JsonResponse
     {
+        ini_set('max_execution_time', 400);
         $response = new JsonResponse();
 
         $rechargeStations = $rechargeStationRepository->findAll();
@@ -186,6 +189,8 @@ class StationController extends AbstractController
     #[Route('/potusInformationBicing', name: 'refresh_potusInfo_bicing', methods: ["PUT"])]
     public function updatePotusInfoBicing(ManagerRegistry $doctrine, BicingStationRepository $bicingStationRepository, RechargeStationRepository $rechargeStationRepository): JsonResponse
     {
+        ini_set('max_execution_time', 400);
+
         $response = new JsonResponse();
 
         $bicingStations = $bicingStationRepository->findAll();
