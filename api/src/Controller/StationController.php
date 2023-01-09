@@ -20,7 +20,7 @@ class StationController extends AbstractController
     /**
      * @throws Exception
      */
-    #[Route('/station_bicing', name: 'app_station')]
+    #[Route('/stations', name: 'app_station')]
     public function index(ManagerRegistry $doctrine): Response
     {
         ini_set('max_execution_time', 400);
@@ -116,7 +116,7 @@ class StationController extends AbstractController
                         try {
                             $rechargeStation->$functionName($value);
                         } catch (Exception $e) {
-                            throw new Exception($e); //TODO
+                            throw new $e;
                         }
                     }
                 }
@@ -275,24 +275,26 @@ class StationController extends AbstractController
                 $lowDanger = true;
 
                 if ($gas->value !== null){
-                    $gasInfo[$gas->name] = ["dangerLevel" => "Low" , "value" => $gas->value];
+                    $dblvalue = floatval($gas->value);
+                    $gasInfo[$gas->name] = ["name" => $gas->name, "dangerLevel" => "Low" , "value" => $dblvalue];
                 }
                 else{
-                    $gasInfo[$gas->name] = ["dangerLevel" => $gas->dangerLevel];
+                    $gasInfo[$gas->name] = [ "name" => $gas->name, "dangerLevel" => $gas->dangerLevel];
                 }
+
 
                 $dangerousGases[] = $gasInfo[$gas->name];
             }
             else if ($gas->dangerLevel === "Moderate"){
                 $moderateDanger = true;
-
+                $gasInfo[$gas->name] = [$gas->name];
                 if ($gas->value !== null){
-                    $gasInfo[$gas->name] = ["dangerLevel" => "Moderate" , "value" => $gas->value];
+                    $dblvalue = floatval($gas->value);
+                    $gasInfo[$gas->name] = ["name" => $gas->name, "dangerLevel" => "Moderate" , "value" => $dblvalue];
                 }
                 else {
-                    $gasInfo[$gas->name] = ["dangerLevel" => $gas->dangerLevel];
+                    $gasInfo[$gas->name] = [ "name" => $gas->name, "dangerLevel" => $gas->dangerLevel];
                 }
-
                 $dangerousGases[] = $gasInfo[$gas->name];
             }
         }
