@@ -2,6 +2,7 @@
 
 namespace App\Entity;
 
+use ApiPlatform\Metadata\ApiFilter;
 use ApiPlatform\Metadata\ApiResource;
 use App\Repository\RechargeStationRepository;
 use Doctrine\Common\Collections\ArrayCollection;
@@ -9,6 +10,7 @@ use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ApiResource]
+#[ApiFilter(\ApiPlatform\Doctrine\Orm\Filter\SearchFilter::class, properties: ["adress"=>"ipartial", "speedType"=>"ipartial", "connectionType"=>"ipartial", "power", "currentType"=>"ipartial"])]
 #[ORM\Entity(repositoryClass: RechargeStationRepository::class)]
 class RechargeStation extends Station
 {
