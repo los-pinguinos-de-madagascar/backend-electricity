@@ -5,15 +5,15 @@ namespace App\Controller;
 use App\Entity\BicingStation;
 use App\Entity\RechargeStation;
 use App\Entity\Station;
-use App\Helpers\RouteAlgorithm;
-use App\Repository\BicingStationRepository;
-use App\Repository\RechargeStationRepository;
 use Doctrine\Persistence\ManagerRegistry;
 use EasyRdf\Exception;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Contracts\HttpClient\HttpClientInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
+use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Serializer\SerializerInterface;
 
 class StationController extends AbstractController
 {
@@ -132,124 +132,30 @@ class StationController extends AbstractController
         }
     }
 
-    #[Route('/potusInformationRecharge', name: 'refresh_potusInfo_recharge', methods: ["PUT"])]
-    public function updatePotusInfoRecharge(ManagerRegistry $doctrine, BicingStationRepository $bicingStationRepository, RechargeStationRepository $rechargeStationRepository): JsonResponse
+    #[Route('/airQuality', name: 'get_potus_info_station', methods: ["GET"])]
+    public function getAirQualityStation(SerializerInterface $serializer, Request $request): JsonResponse
     {
-        ini_set('max_execution_time', 400);
-        $response = new JsonResponse();
+        $latitude = $request->query->get("latitude");
+        $length = $request->query->get("longitude");
 
-        $rechargeStations = $rechargeStationRepository->findAll();
 
-        if (!empty($rechargeStations)){
-            foreach ($rechargeStations as $station){
+        $haslatitude = $request->query->has("latitude");
+        $haslongitude = $request->query->has("longitude");
 
-                $lat = $station->getLatitude();
-                $lon = $station->getLongitude();
-
-                $latitudestr = strval($lat);
-                $lengthstr = strval($lon);
-                $boolpolution = false;
-                $boolgases = false;
-
-                $potusInformation = $this->getPotusInformation($latitudestr,$lengthstr);
-
-                foreach($potusInformation as $key=>$value){
-                    if ($key === 0){
-                        $polution = $value;
-                        $boolpolution = true;
-                    }
-
-                    else if ($key === 1){
-                        $dangerousGases = $value;
-                        $boolgases = true;
-                    }
-                }
-                if ($boolpolution) $station->setPolution($polution);
-                if ($boolgases) $station->setDangerousGases($dangerousGases);
-            }
-        }
-
-        else {
-            $returnMessage = json_encode(["message"=>"The DB does not have recharge stations"]);
-            $response->setContent($returnMessage);
-            $response->setStatusCode(503);
+        if (!$haslatitude || !$haslongitude){
+            $response = new JsonResponse();
+            $response->setStatusCode(400);
+            $responseJson["error"]="Latitude or Longitude is missing";
+            $response->setContent($serializer->serialize($responseJson,"json"));
             return $response;
         }
 
-        $entityManager = $doctrine->getManager();
-        $entityManager->flush();
-
-        $returnMessage = json_encode(["message"=>"The DB has been updated"]);
-        $response->setContent($returnMessage);
-        $response->setStatusCode(200);
-
-        return $response;
-    }
-
-    #[Route('/potusInformationBicing', name: 'refresh_potusInfo_bicing', methods: ["PUT"])]
-    public function updatePotusInfoBicing(ManagerRegistry $doctrine, BicingStationRepository $bicingStationRepository, RechargeStationRepository $rechargeStationRepository): JsonResponse
-    {
-        ini_set('max_execution_time', 400);
-
-        $response = new JsonResponse();
-
-        $bicingStations = $bicingStationRepository->findAll();
-
-        if (!empty($bicingStations)){
-            foreach ($bicingStations as $station){
-
-                $lat = $station->getLatitude();
-                $lon = $station->getLongitude();
-
-                $latitudestr = strval($lat);
-                $lengthstr = strval($lon);
-                $boolpolution = false;
-                $boolgases = false;
-
-                $potusInformation = $this->getPotusInformation($latitudestr,$lengthstr);
-
-                foreach($potusInformation as $key=>$value){
-                    if ($key === 0){
-                        $polution = $value;
-                        $boolpolution = true;
-                    }
-
-                    else if ($key === 1){
-                        $dangerousGases = $value;
-                        $boolgases = true;
-                    }
-                }
-                if ($boolpolution) $station->setPolution($polution);
-                if ($boolgases) $station->setDangerousGases($dangerousGases);
-            }
-        }
-
-        else {
-            $returnMessage = json_encode(["message"=>"The DB does not have bicing stations"]);
-            $response->setContent($returnMessage);
-            $response->setStatusCode(503);
-            return $response;
-        }
-
-        $entityManager = $doctrine->getManager();
-        $entityManager->flush();
-
-        $returnMessage = json_encode(["message"=>"The DB has been updated"]);
-        $response->setContent($returnMessage);
-        $response->setStatusCode(200);
-
-        return $response;
-    }
-    private function getPotusInformation($latitude, $length)
-    {
-        // Potus Information
         $url = 'https://potusback-production-b295.up.railway.app/api/external/airquality/region';
         $data = array(
             'latitude' => $latitude,
             'length' => $length,
         );
 
-        //var_dump($data);
         $final = $url . "?" . http_build_query($data);
         $options = array(
             'http' => array(
@@ -258,22 +164,24 @@ class StationController extends AbstractController
             )
         );
 
+
         $context = stream_context_create($options);
         $file = file_get_contents($final, false, $context);
         $jsonInformation = json_decode($file);
-
-        //var_dump($jsonInformation);
         $gases = $jsonInformation->registry;
 
         $levelDanger = 0;
         $lowDanger = false;
         $moderateDanger = false;
+        $highDanger = false;
+        $hazardousDanger = false;
         $dangerousGases = array();
 
+
         foreach ($gases as $gas){
+
             if ($gas->dangerLevel === "Low"){
                 $lowDanger = true;
-
                 if ($gas->value !== null){
                     $dblvalue = floatval($gas->value);
                     $gasInfo[$gas->name] = ["name" => $gas->name, "dangerLevel" => "Low" , "value" => $dblvalue];
@@ -281,8 +189,6 @@ class StationController extends AbstractController
                 else{
                     $gasInfo[$gas->name] = [ "name" => $gas->name, "dangerLevel" => $gas->dangerLevel];
                 }
-
-
                 $dangerousGases[] = $gasInfo[$gas->name];
             }
             else if ($gas->dangerLevel === "Moderate"){
@@ -297,15 +203,47 @@ class StationController extends AbstractController
                 }
                 $dangerousGases[] = $gasInfo[$gas->name];
             }
+
+            else if($gas->dangerLevel === "High"){
+                $highDanger = true;
+                $gasInfo[$gas->name] = [$gas->name];
+                if ($gas->value !== null){
+                    $dblvalue = floatval($gas->value);
+                    $gasInfo[$gas->name] = ["name" => $gas->name, "dangerLevel" => "High" , "value" => $dblvalue];
+                }
+                else {
+                    $gasInfo[$gas->name] = [ "name" => $gas->name, "dangerLevel" => $gas->dangerLevel];
+                }
+                $dangerousGases[] = $gasInfo[$gas->name];
+            }
+
+            else if($gas->dangerLevel === "Hazardous"){
+                $hazardousDanger = true;
+                $gasInfo[$gas->name] = [$gas->name];
+                if ($gas->value !== null){
+                    $dblvalue = floatval($gas->value);
+                    $gasInfo[$gas->name] = ["name" => $gas->name, "dangerLevel" => "Hazardous" , "value" => $dblvalue];
+                }
+                else {
+                    $gasInfo[$gas->name] = [ "name" => $gas->name, "dangerLevel" => $gas->dangerLevel];
+                }
+                $dangerousGases[] = $gasInfo[$gas->name];
+            }
         }
 
-        if ($moderateDanger) $levelDanger = 2;
+        if ($hazardousDanger) $levelDanger = 4;
+        else if ($highDanger) $levelDanger = 3;
+        else if ($moderateDanger) $levelDanger = 2;
         else if ($lowDanger) $levelDanger = 1;
 
-        $potusInformation[] = $levelDanger;
-        $potusInformation[] = $dangerousGases;
 
-        return $potusInformation;
+        $potusInformation["danger_level"] = $levelDanger;
+        $potusInformation["dangerous_gases"] = $dangerousGases;
+
+        $response = new JsonResponse();
+        $response->setStatusCode(200);
+        $response->setContent($serializer->serialize($potusInformation,"json"));
+        return $response;
     }
 
 }
