@@ -12,8 +12,11 @@ use Doctrine\Persistence\ManagerRegistry;
 use EasyRdf\Exception;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
+use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Serializer\Serializer;
+use Symfony\Component\Serializer\SerializerInterface;
 
 class StationController extends AbstractController
 {
@@ -306,6 +309,108 @@ class StationController extends AbstractController
         $potusInformation[] = $dangerousGases;
 
         return $potusInformation;
+    }
+
+    #[Route('/airQuality', name: 'get_potus_info_station', methods: ["GET"])]
+    public function getAirQualityStation(SerializerInterface $serializer, Request $request): JsonResponse
+    {
+        $latitude = $request->query->get("latitude");
+        $length = $request->query->get("longitude");
+
+        $url = 'https://potusback-production-b295.up.railway.app/api/external/airquality/region';
+        $data = array(
+            'latitude' => $latitude,
+            'length' => $length,
+        );
+
+        //var_dump($data);
+        $final = $url . "?" . http_build_query($data);
+        $options = array(
+            'http' => array(
+                'method' => 'GET',
+                'header'=>"Authorization: token BD2GNpAHy0pQbpXvGyLoaSEYxSghpMKRBx79X3K4Q7DUQNJloggzmi3yGqiEVP084eY1yXN8a073dEdTb5UNUusL5thCqflqCJJRHYicf2bjVaKd7vI9EpQTEpxJ2HmWxXlidTiYkqK1icwVw1jG4LxuV4d359rqY149ArkOb2om1PVVyrI1qdt28o3Ps3hfIZp8L7rzNoLT10kL2cEDGo4HLawTfnmEOoJmravYrGCuSUcnrhP4DWZ9\r\n"
+            )
+        );
+
+        $context = stream_context_create($options);
+        $file = file_get_contents($final, false, $context);
+        $jsonInformation = json_decode($file);
+        $gases = $jsonInformation->registry;
+
+        $levelDanger = 0;
+        $lowDanger = false;
+        $moderateDanger = false;
+        $highDanger = false;
+        $hazardousDanger = false;
+        $dangerousGases = array();
+
+
+        foreach ($gases as $gas){
+
+            if ($gas->dangerLevel === "Low"){
+                $lowDanger = true;
+                if ($gas->value !== null){
+                    $dblvalue = floatval($gas->value);
+                    $gasInfo[$gas->name] = ["name" => $gas->name, "dangerLevel" => "Low" , "value" => $dblvalue];
+                }
+                else{
+                    $gasInfo[$gas->name] = [ "name" => $gas->name, "dangerLevel" => $gas->dangerLevel];
+                }
+                $dangerousGases[] = $gasInfo[$gas->name];
+            }
+            else if ($gas->dangerLevel === "Moderate"){
+                $moderateDanger = true;
+                $gasInfo[$gas->name] = [$gas->name];
+                if ($gas->value !== null){
+                    $dblvalue = floatval($gas->value);
+                    $gasInfo[$gas->name] = ["name" => $gas->name, "dangerLevel" => "Moderate" , "value" => $dblvalue];
+                }
+                else {
+                    $gasInfo[$gas->name] = [ "name" => $gas->name, "dangerLevel" => $gas->dangerLevel];
+                }
+                $dangerousGases[] = $gasInfo[$gas->name];
+            }
+
+            else if($gas->dangerLevel === "High"){
+                $highDanger = true;
+                $gasInfo[$gas->name] = [$gas->name];
+                if ($gas->value !== null){
+                    $dblvalue = floatval($gas->value);
+                    $gasInfo[$gas->name] = ["name" => $gas->name, "dangerLevel" => "High" , "value" => $dblvalue];
+                }
+                else {
+                    $gasInfo[$gas->name] = [ "name" => $gas->name, "dangerLevel" => $gas->dangerLevel];
+                }
+                $dangerousGases[] = $gasInfo[$gas->name];
+            }
+
+            else if($gas->dangerLevel === "Hazardous"){
+                $hazardousDanger = true;
+                $gasInfo[$gas->name] = [$gas->name];
+                if ($gas->value !== null){
+                    $dblvalue = floatval($gas->value);
+                    $gasInfo[$gas->name] = ["name" => $gas->name, "dangerLevel" => "Hazardous" , "value" => $dblvalue];
+                }
+                else {
+                    $gasInfo[$gas->name] = [ "name" => $gas->name, "dangerLevel" => $gas->dangerLevel];
+                }
+                $dangerousGases[] = $gasInfo[$gas->name];
+            }
+        }
+
+        if ($hazardousDanger) $levelDanger = 4;
+        else if ($highDanger) $levelDanger = 3;
+        else if ($moderateDanger) $levelDanger = 2;
+        else if ($lowDanger) $levelDanger = 1;
+
+
+        $potusInformation["danger_level"] = $levelDanger;
+        $potusInformation["dangerous_gases"] = $dangerousGases;
+
+        $response = new JsonResponse();
+        $response->setStatusCode(200);
+        $response->setContent($serializer->serialize($potusInformation,"json"));
+        return $response;
     }
 
 }
