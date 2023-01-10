@@ -38,14 +38,15 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 
     #[ORM\Column(nullable: false)]
     #[Assert\NotBlank]
+    #[Groups('write')]
     private ?string $password = null;
 
     #[ORM\Column(length: 255)]
-    #[Groups('read')]
+    #[Groups(['read','write'])]
     private ?string $username = null;
 
     #[ORM\Column(length: 255, nullable: true)]
-    #[Groups('read')]
+    #[Groups(['read','write'])]
     private ?string $fullname = null;
 
     #[ORM\Column]
@@ -79,18 +80,23 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 
 
     #[ORM\OneToMany(mappedBy: 'userReservation', targetEntity: Reservation::class, orphanRemoval: true)]
+    #[Groups('read')]
     private Collection $reservations;
 
-    #[ORM\Column( nullable: true)]
-    private ?int $electryCoins = null;
+    #[ORM\Column( nullable: false, options: ["default"=>0])]
+    #[Groups(['read','write'])]
+    private ?int $electryCoins = 0;
 
     #[ORM\Column(length: 255, nullable: true)]
-    private ?string $skinCursor = null;
+    #[Groups(['read','write'])]
+    private ?string $skinAvatar = null;
 
     #[ORM\Column(length: 255, nullable: true)]
+    #[Groups(['read','write'])]
     private ?string $skinPalette = null;
 
     #[ORM\ManyToMany(targetEntity: Award::class, inversedBy: 'users')]
+    #[Groups('read')]
     private Collection $awards;
 
     public function __construct()
@@ -400,15 +406,14 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         return $this;
     }
 
-    public function getSkinCursor(): ?string
+    public function getSkinAvatar(): ?string
     {
-        return $this->skinCursor;
+        return $this->skinAvatar;
     }
 
-    public function setSkinCursor(?string $skinCursor): self
+    public function setSkinAvatar(?string $skinAvatar): self
     {
-        $this->skinCursor = $skinCursor;
-
+        $this->skinAvatar = $skinAvatar;
         return $this;
     }
 
