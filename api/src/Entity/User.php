@@ -54,33 +54,33 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     private array $roles = ["ROLE_USER"];
 
     #[ORM\ManyToMany(targetEntity: Location::class, cascade:["persist"])]
-    #[Groups('read')]
+    #[Groups(['read','write'])]
     private Collection $favouriteLocations;
 
     #[ORM\ManyToMany(targetEntity: BicingStation::class)]
-    #[Groups('read')]
+    #[Groups(['read','write'])]
     private Collection $favouriteBicingStations;
 
     #[ORM\ManyToMany(targetEntity: RechargeStation::class)]
-    #[Groups('read')]
+    #[Groups(['read','write'])]
     private Collection $favouriteRechargeStations;
 
 
     #[ORM\OneToMany(mappedBy: 'sender', targetEntity: Message::class, orphanRemoval: true)]
-    #[Groups('read')]
+    #[Groups(['read','write'])]
     private Collection $messagesSender;
 
     #[ORM\OneToMany(mappedBy: 'receiver', targetEntity: Message::class, orphanRemoval: true)]
-    #[Groups('read')]
+    #[Groups(['read','write'])]
     private Collection $messagesReceiver;
 
     #[ORM\OneToMany(mappedBy: 'userOwner', targetEntity: Comment::class, orphanRemoval: true)]
-    #[Groups('read')]
+    #[Groups(['read','write'])]
     private Collection $comments;
 
 
     #[ORM\OneToMany(mappedBy: 'userReservation', targetEntity: Reservation::class, orphanRemoval: true)]
-    #[Groups('read')]
+    #[Groups(['read','write'])]
     private Collection $reservations;
 
     #[ORM\Column( nullable: false, options: ["default"=>0])]
@@ -96,7 +96,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     private ?string $skinPalette = null;
 
     #[ORM\ManyToMany(targetEntity: Award::class, inversedBy: 'users')]
-    #[Groups('read')]
+    #[Groups(['read','write'])]
     private Collection $awards;
 
     public function __construct()
